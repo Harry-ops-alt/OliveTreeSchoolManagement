@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint workspace
+        run: pnpm lint
+
+      - name: Build workspace
+        run: pnpm build
+
+      - name: Build Next app
+        run: pnpm --filter next build
+
+      - name: Start API
+        run: pnpm --filter api start:dev &
+
+      - name: Wait for API health
+        run: |
+          for i in {1..60}; do
+            if curl -sf http://localhost:3001/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API did not become healthy" >&2
+          exit 1
+
+      - name: Run smoke auth
+        run: node apps/next/scripts/smoke-auth.js
+
+      - name: Start Next app
+        run: pnpm --filter next dev -p 3000 &
+
+      - name: Wait for Next health
+        run: |
+          for i in {1..60}; do
+            if curl -sf http://localhost:3000/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Next app did not become healthy" >&2
+          exit 1
+
+      - name: Run Playwright tests
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:3001
+          E2E_USER_EMAIL: admin@olive.school
+          E2E_USER_PASSWORD: AdminPass123!
+        run: pnpm --filter next test:e2e
+
+      - name: Stop services
+        if: always()
+        run: |
+          kill $(jobs -p) 2>/dev/null || true

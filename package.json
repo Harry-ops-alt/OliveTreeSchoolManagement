@@ -1,0 +1,26 @@
+{
+  "name": "olive-tree-school-management",
+  "packageManager": "pnpm@9.12.0+sha512.4abf725084d7bcbafbd728bfc7bee61f2f791f977fd87542b3579dcb23504d170d46337945e4c66485cd12d588a0c0e570ed9c477e7ccdd8507cf05f3f92eaca",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Unified school management platform",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "scripts/dev.sh",
+    "dev:next": "pnpm --filter next dev",
+    "dev:api": "pnpm --filter api start:dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "storybook:ui": "pnpm --filter @olive/ui storybook",
+    "clean": "turbo run clean"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "create-next-app": "^14.2.5",
+    "turbo": "^2.0.0"
+  }
+}

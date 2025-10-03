@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  SCHOOL_ADMIN
+  OPERATIONS_MANAGER
+  BRANCH_MANAGER
+  ADMISSIONS_OFFICER
+  FINANCE_MANAGER
+  FINANCE_OFFICER
+  TEACHER
+  TEACHING_ASSISTANT
+  TRAINER
+  TRAINEE
+  SUPPORT_STAFF
+  PARENT_GUARDIAN
+  STUDENT
+}
+
+enum AdmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum AttendanceSessionStatus {
+  OPEN
+  SUBMITTED
+  FINALIZED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum StaffAssignmentRole {
+  LEAD_TEACHER
+  ASSISTANT
+  SUBSTITUTE
+  SUPPORT
+}
+
+enum FinanceTransactionType {
+  INVOICE
+  PAYMENT
+  REFUND
+  EXPENSE
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  branches  Branch[]
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Branch {
+  id                 String               @id @default(uuid())
+  name               String
+  organizationId     String
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users              User[]
+  students           StudentProfile[]
+  teachers           TeacherProfile[]
+  admissions         Admission[]
+  transactions       FinanceTransaction[]
+  classrooms         Classroom[]
+  classSchedules     ClassSchedule[]
+  attendanceSessions AttendanceSession[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@index([organizationId])
+}
+
+model User {
+  id                        String              @id @default(uuid())
+  email                     String              @unique
+  passwordHash              String
+  role                      Role
+  firstName                 String
+  lastName                  String
+  organizationId            String?
+  branchId                  String?
+  organization              Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  branch                    Branch?             @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  teacherProfile            TeacherProfile?
+  studentProfile            StudentProfile?
+  attendanceSessionsCreated AttendanceSession[] @relation("AttendanceSessionsCreated")
+  attendanceRecordsRecorded AttendanceRecord[]  @relation("AttendanceRecordsRecorded")
+  staffAssignments          StaffAssignment[]
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+}
+
+model StudentProfile {
+  id                String             @id @default(uuid())
+  userId            String             @unique
+  branchId          String
+  guardianEmail     String?
+  enrollmentDate    DateTime           @default(now())
+  status            AdmissionStatus    @default(PENDING)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch            Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  admissions        Admission[]
+  attendanceRecords AttendanceRecord[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([branchId])
+}
+
+model TeacherProfile {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  branchId       String
+  hireDate       DateTime        @default(now())
+  subjects       String[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  classSchedules ClassSchedule[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([branchId])
+}
+
+model Admission {
+  id        String          @id @default(uuid())
+  studentId String
+  branchId  String
+  status    AdmissionStatus @default(PENDING)
+  appliedAt DateTime        @default(now())
+  decidedAt DateTime?
+  notes     String?
+  student   StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  branch    Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+  @@index([studentId])
+}
+
+model FinanceTransaction {
+  id          String                 @id @default(uuid())
+  branchId    String
+  type        FinanceTransactionType
+  amount      Decimal                @db.Decimal(12, 2)
+  occurredAt  DateTime               @default(now())
+  reference   String?
+  description String?
+  branch      Branch                 @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@index([branchId])
+}
+
+model Classroom {
+  id        String          @id @default(uuid())
+  branchId  String
+  name      String
+  capacity  Int?
+  location  String?
+  notes     String?
+  branch    Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  schedules ClassSchedule[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([branchId, name])
+  @@index([branchId])
+}
+
+model ClassSchedule {
+  id                 String              @id @default(uuid())
+  branchId           String
+  classroomId        String?
+  teacherProfileId   String?
+  title              String
+  description        String?
+  dayOfWeek          DayOfWeek
+  startTime          DateTime
+  endTime            DateTime
+  isRecurring        Boolean             @default(true)
+  branch             Branch              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  classroom          Classroom?          @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  teacherProfile     TeacherProfile?     @relation(fields: [teacherProfileId], references: [id], onDelete: SetNull)
+  assignments        StaffAssignment[]
+  attendanceSessions AttendanceSession[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([branchId, dayOfWeek])
+  @@index([classroomId])
+  @@index([teacherProfileId])
+}
+
+model StaffAssignment {
+  id         String              @id @default(uuid())
+  scheduleId String
+  userId     String
+  role       StaffAssignmentRole @default(LEAD_TEACHER)
+  assignedAt DateTime            @default(now())
+  schedule   ClassSchedule       @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([scheduleId, userId])
+  @@index([userId])
+}
+
+model AttendanceSession {
+  id              String                  @id @default(uuid())
+  branchId        String
+  classScheduleId String?
+  date            DateTime
+  status          AttendanceSessionStatus @default(OPEN)
+  notes           String?
+  createdById     String?
+  submittedAt     DateTime?
+  finalizedAt     DateTime?
+  branch          Branch                  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  classSchedule   ClassSchedule?          @relation(fields: [classScheduleId], references: [id], onDelete: SetNull)
+  createdBy       User?                   @relation("AttendanceSessionsCreated", fields: [createdById], references: [id], onDelete: SetNull)
+  records         AttendanceRecord[]
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([branchId, date])
+  @@index([classScheduleId])
+  @@index([createdById])
+}
+
+model AttendanceRecord {
+  id           String            @id @default(uuid())
+  sessionId    String
+  studentId    String
+  status       AttendanceStatus  @default(PRESENT)
+  notes        String?
+  recordedById String?
+  recordedAt   DateTime          @default(now())
+  session      AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student      StudentProfile    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  recordedBy   User?             @relation("AttendanceRecordsRecorded", fields: [recordedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([sessionId, studentId])
+  @@index([studentId])
+  @@index([recordedById])
+}

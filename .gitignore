@@ -1,0 +1,34 @@
+# macOS
+.DS_Store
+
+# Env / secrets
+.env
+.env.*        # e.g. .env.local, .env.test
+apps/**/.env
+apps/**/.env.* 
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Turbo / pnpm / caches
+.turbo/
+.pnpm-store/
+pnpm-debug.log*
+npm-debug.log*
+
+# Playwright / test outputs
+test-results/
+playwright-report/
+
+# Logs
+*.log
+
+# Misc
+*.local
