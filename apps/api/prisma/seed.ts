@@ -4,12 +4,69 @@ import {
   AttendanceStatus,
   DayOfWeek,
   FinanceTransactionType,
+  Gender,
   PrismaClient,
   StaffAssignmentRole,
+  StudentStatus,
 } from "@prisma/client";
 import { hash } from "argon2";
 
 const prisma = new PrismaClient();
+
+type SeedGuardian = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  alternatePhone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  notes?: string;
+  relationship?: string;
+  isPrimary?: boolean;
+  contactOrder?: number;
+  branchId?: string;
+};
+
+type SeedStudent = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  studentNumber: string;
+  studentStatus: StudentStatus;
+  gender?: Gender;
+  gradeLevel?: string;
+  homeroom?: string;
+  enrollmentDate?: Date;
+  primaryLanguage?: string;
+  phone?: string;
+  alternatePhone?: string;
+  additionalSupportNotes?: string;
+  medicalNotes?: string;
+  dateOfBirth?: Date;
+  address?: {
+    line1?: string;
+    line2?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
+  notes?: string;
+  guardians: SeedGuardian[];
+  admission: {
+    id: string;
+    status: AdmissionStatus;
+    appliedAt: Date;
+    decidedAt?: Date | null;
+    notes?: string | null;
+  };
+};
 
 async function main() {
   const organization = await prisma.organization.upsert({
@@ -299,45 +356,163 @@ async function main() {
     },
   });
 
-  const students = [
+  const students: SeedStudent[] = [
     {
       email: "amara.bello@student.olive.school",
       firstName: "Amara",
       lastName: "Bello",
-      guardianEmail: "amara.mum@example.com",
-      admissionId: "admission-amara",
-      admissionStatus: AdmissionStatus.PENDING,
-      appliedAt: new Date("2025-09-28T08:30:00.000Z"),
-      notes: "Awaiting interview with admissions",
+      studentNumber: "STU-2025-001",
+      studentStatus: StudentStatus.APPLIED,
+      gender: Gender.FEMALE,
+      gradeLevel: "Year 8",
+      homeroom: "Emerald 8A",
+      enrollmentDate: new Date("2025-09-01T08:00:00.000Z"),
+      primaryLanguage: "English",
+      dateOfBirth: new Date("2012-04-15T00:00:00.000Z"),
+      address: {
+        line1: "12 Akintola Street",
+        city: "Lagos",
+        state: "Lagos",
+        postalCode: "100001",
+        country: "NG",
+      },
+      guardians: [
+        {
+          id: "guardian-amara-bello",
+          firstName: "Ngozi",
+          lastName: "Bello",
+          email: "amara.mum@example.com",
+          phone: "+2347010000001",
+          alternatePhone: "+2348090000001",
+          addressLine1: "12 Akintola Street",
+          city: "Lagos",
+          state: "Lagos",
+          postalCode: "100001",
+          country: "NG",
+          relationship: "Mother",
+          isPrimary: true,
+          contactOrder: 1,
+        },
+      ],
+      admission: {
+        id: "admission-amara",
+        status: AdmissionStatus.PENDING,
+        appliedAt: new Date("2025-09-28T08:30:00.000Z"),
+        decidedAt: null,
+        notes: "Awaiting interview with admissions",
+      },
     },
     {
       email: "yusuf.daniel@student.olive.school",
       firstName: "Yusuf",
       lastName: "Daniel",
-      guardianEmail: "yusuf.guardian@example.com",
-      admissionId: "admission-yusuf",
-      admissionStatus: AdmissionStatus.APPROVED,
-      appliedAt: new Date("2025-08-20T10:15:00.000Z"),
-      decidedAt: new Date("2025-09-05T14:45:00.000Z"),
-      notes: "Accepted into Year 8",
+      studentNumber: "STU-2025-002",
+      studentStatus: StudentStatus.ENROLLED,
+      gender: Gender.MALE,
+      gradeLevel: "Year 8",
+      homeroom: "Emerald 8B",
+      enrollmentDate: new Date("2025-08-25T08:00:00.000Z"),
+      primaryLanguage: "English",
+      phone: "+2347010000002",
+      alternatePhone: "+2348090000002",
+      dateOfBirth: new Date("2011-11-02T00:00:00.000Z"),
+      address: {
+        line1: "7 Unity Close",
+        city: "Abuja",
+        state: "FCT",
+        postalCode: "900211",
+        country: "NG",
+      },
+      guardians: [
+        {
+          id: "guardian-yusuf-daniel",
+          firstName: "Hajara",
+          lastName: "Daniel",
+          email: "yusuf.guardian@example.com",
+          phone: "+2347010000003",
+          addressLine1: "7 Unity Close",
+          city: "Abuja",
+          state: "FCT",
+          postalCode: "900211",
+          country: "NG",
+          relationship: "Mother",
+          isPrimary: true,
+          contactOrder: 1,
+        },
+        {
+          id: "guardian-yusuf-daniel-father",
+          firstName: "Ibrahim",
+          lastName: "Daniel",
+          email: "yusuf.father@example.com",
+          phone: "+2347010000004",
+          addressLine1: "7 Unity Close",
+          city: "Abuja",
+          state: "FCT",
+          postalCode: "900211",
+          country: "NG",
+          relationship: "Father",
+          isPrimary: false,
+          contactOrder: 2,
+        },
+      ],
+      admission: {
+        id: "admission-yusuf",
+        status: AdmissionStatus.APPROVED,
+        appliedAt: new Date("2025-08-20T10:15:00.000Z"),
+        decidedAt: new Date("2025-09-05T14:45:00.000Z"),
+        notes: "Accepted into Year 8",
+      },
     },
     {
       email: "tomiwa.ade@student.olive.school",
       firstName: "Tomiwa",
       lastName: "Ade",
-      guardianEmail: "tomiwa.parent@example.com",
-      admissionId: "admission-tomiwa",
-      admissionStatus: AdmissionStatus.REJECTED,
-      appliedAt: new Date("2025-08-12T11:00:00.000Z"),
-      decidedAt: new Date("2025-09-01T09:30:00.000Z"),
-      notes: "Did not meet minimum placement requirements",
+      studentNumber: "STU-2025-003",
+      studentStatus: StudentStatus.WITHDRAWN,
+      gender: Gender.NON_BINARY,
+      gradeLevel: "Year 7",
+      homeroom: "Cedar 7C",
+      primaryLanguage: "English",
+      dateOfBirth: new Date("2013-02-22T00:00:00.000Z"),
+      notes: "Transferred from another branch",
+      address: {
+        line1: "18 Palm Grove",
+        city: "Ibadan",
+        state: "Oyo",
+        postalCode: "200221",
+        country: "NG",
+      },
+      guardians: [
+        {
+          id: "guardian-tomiwa-ade",
+          firstName: "Kunle",
+          lastName: "Ade",
+          email: "tomiwa.parent@example.com",
+          phone: "+2347010000005",
+          addressLine1: "18 Palm Grove",
+          city: "Ibadan",
+          state: "Oyo",
+          postalCode: "200221",
+          country: "NG",
+          relationship: "Father",
+          isPrimary: true,
+          contactOrder: 1,
+        },
+      ],
+      admission: {
+        id: "admission-tomiwa",
+        status: AdmissionStatus.REJECTED,
+        appliedAt: new Date("2025-08-12T11:00:00.000Z"),
+        decidedAt: new Date("2025-09-01T09:30:00.000Z"),
+        notes: "Did not meet minimum placement requirements",
+      },
     },
   ];
 
   const studentProfiles: {
     profileId: string;
     email: string;
-    status: AdmissionStatus;
+    status: StudentStatus;
   }[] = [];
 
   for (const student of students) {
@@ -368,43 +543,137 @@ async function main() {
       where: { userId: studentUser.id },
       update: {
         branchId: branch.id,
-        status: student.admissionStatus,
-        guardianEmail: student.guardianEmail,
+        studentNumber: student.studentNumber,
+        email: student.email,
+        phone: student.phone ?? null,
+        alternatePhone: student.alternatePhone ?? null,
+        status: student.studentStatus,
+        gradeLevel: student.gradeLevel ?? null,
+        homeroom: student.homeroom ?? null,
+        primaryLanguage: student.primaryLanguage ?? null,
+        additionalSupportNotes: student.additionalSupportNotes ?? null,
+        medicalNotes: student.medicalNotes ?? null,
+        gender: student.gender ?? null,
+        dateOfBirth: student.dateOfBirth ?? null,
+        addressLine1: student.address?.line1 ?? null,
+        addressLine2: student.address?.line2 ?? null,
+        city: student.address?.city ?? null,
+        state: student.address?.state ?? null,
+        postalCode: student.address?.postalCode ?? null,
+        country: student.address?.country ?? null,
+        notes: student.notes ?? null,
       },
       create: {
         userId: studentUser.id,
         branchId: branch.id,
-        guardianEmail: student.guardianEmail,
-        status: student.admissionStatus,
+        studentNumber: student.studentNumber,
+        email: student.email,
+        phone: student.phone ?? null,
+        alternatePhone: student.alternatePhone ?? null,
+        enrollmentDate: student.enrollmentDate ?? new Date(),
+        status: student.studentStatus,
+        gradeLevel: student.gradeLevel ?? null,
+        homeroom: student.homeroom ?? null,
+        primaryLanguage: student.primaryLanguage ?? null,
+        additionalSupportNotes: student.additionalSupportNotes ?? null,
+        medicalNotes: student.medicalNotes ?? null,
+        gender: student.gender ?? null,
+        dateOfBirth: student.dateOfBirth ?? null,
+        addressLine1: student.address?.line1 ?? null,
+        addressLine2: student.address?.line2 ?? null,
+        city: student.address?.city ?? null,
+        state: student.address?.state ?? null,
+        postalCode: student.address?.postalCode ?? null,
+        country: student.address?.country ?? null,
+        notes: student.notes ?? null,
       },
     });
+
+    for (const [index, guardianData] of student.guardians.entries()) {
+      const guardian = await prisma.guardian.upsert({
+        where: { id: guardianData.id },
+        update: {
+          firstName: guardianData.firstName,
+          lastName: guardianData.lastName,
+          email: guardianData.email ?? null,
+          phone: guardianData.phone ?? null,
+          alternatePhone: guardianData.alternatePhone ?? null,
+          addressLine1: guardianData.addressLine1 ?? null,
+          addressLine2: guardianData.addressLine2 ?? null,
+          city: guardianData.city ?? null,
+          state: guardianData.state ?? null,
+          postalCode: guardianData.postalCode ?? null,
+          country: guardianData.country ?? null,
+          notes: guardianData.notes ?? null,
+          branchId: guardianData.branchId ?? branch.id,
+        },
+        create: {
+          id: guardianData.id,
+          organizationId: organization.id,
+          branchId: guardianData.branchId ?? branch.id,
+          firstName: guardianData.firstName,
+          lastName: guardianData.lastName,
+          email: guardianData.email ?? null,
+          phone: guardianData.phone ?? null,
+          alternatePhone: guardianData.alternatePhone ?? null,
+          addressLine1: guardianData.addressLine1 ?? null,
+          addressLine2: guardianData.addressLine2 ?? null,
+          city: guardianData.city ?? null,
+          state: guardianData.state ?? null,
+          postalCode: guardianData.postalCode ?? null,
+          country: guardianData.country ?? null,
+          notes: guardianData.notes ?? null,
+        },
+      });
+
+      await prisma.studentGuardian.upsert({
+        where: { id: `${studentProfile.id}-${guardian.id}` },
+        update: {
+          relationship: guardianData.relationship ?? null,
+          isPrimary: guardianData.isPrimary ?? false,
+          contactOrder: guardianData.contactOrder ?? index + 1,
+        },
+        create: {
+          id: `${studentProfile.id}-${guardian.id}`,
+          student: {
+            connect: { id: studentProfile.id },
+          },
+          guardian: {
+            connect: { id: guardian.id },
+          },
+          relationship: guardianData.relationship ?? null,
+          isPrimary: guardianData.isPrimary ?? false,
+          contactOrder: guardianData.contactOrder ?? index + 1,
+        },
+      });
+    }
 
     studentProfiles.push({
       profileId: studentProfile.id,
       email: student.email,
-      status: student.admissionStatus,
+      status: student.studentStatus,
     });
 
     await prisma.admission.upsert({
-      where: { id: student.admissionId },
+      where: { id: student.admission.id },
       update: {
-        status: student.admissionStatus,
+        status: student.admission.status,
         branchId: branch.id,
-        decidedAt: student.decidedAt ?? null,
-        notes: student.notes ?? null,
+        decidedAt: student.admission.decidedAt ?? null,
+        notes: student.admission.notes ?? null,
       },
       create: {
-        id: student.admissionId,
+        id: student.admission.id,
         student: {
           connect: { id: studentProfile.id },
         },
         branch: {
           connect: { id: branch.id },
         },
-        status: student.admissionStatus,
-        appliedAt: student.appliedAt,
-        decidedAt: student.decidedAt,
-        notes: student.notes ?? null,
+        status: student.admission.status,
+        appliedAt: student.admission.appliedAt,
+        decidedAt: student.admission.decidedAt ?? null,
+        notes: student.admission.notes ?? null,
       },
     });
   }

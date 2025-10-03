@@ -54,6 +54,23 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+  UNSPECIFIED
+}
+
+enum StudentStatus {
+  PROSPECT
+  APPLIED
+  ENROLLED
+  INACTIVE
+  GRADUATED
+  WITHDRAWN
+  ARCHIVED
+}
+
 enum StaffAssignmentRole {
   LEAD_TEACHER
   ASSISTANT
@@ -73,6 +90,7 @@ model Organization {
   name      String   @unique
   branches  Branch[]
   users     User[]
+  guardians Guardian[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -90,6 +108,7 @@ model Branch {
   classrooms         Classroom[]
   classSchedules     ClassSchedule[]
   attendanceSessions AttendanceSession[]
+  guardians          Guardian[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
@@ -117,20 +136,84 @@ model User {
 }
 
 model StudentProfile {
-  id                String             @id @default(uuid())
-  userId            String             @unique
-  branchId          String
-  guardianEmail     String?
-  enrollmentDate    DateTime           @default(now())
-  status            AdmissionStatus    @default(PENDING)
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  branch            Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  admissions        Admission[]
-  attendanceRecords AttendanceRecord[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id                     String             @id @default(uuid())
+  userId                 String             @unique
+  branchId               String
+  studentNumber          String             @unique
+  dateJoined             DateTime           @default(now())
+  email                  String?
+  phone                  String?
+  alternatePhone         String?
+  enrollmentDate         DateTime           @default(now())
+  status                 StudentStatus      @default(PROSPECT)
+  dateOfBirth            DateTime?
+  gender                 Gender?
+  gradeLevel             String?
+  homeroom               String?
+  primaryLanguage        String?
+  additionalSupportNotes String?
+  medicalNotes           String?
+  addressLine1           String?
+  addressLine2           String?
+  city                   String?
+  state                  String?
+  postalCode             String?
+  country                String?
+  notes                  String?
+  isArchived             Boolean            @default(false)
+  archivedAt             DateTime?
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch                 Branch             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  admissions             Admission[]
+  guardians              StudentGuardian[]
+  attendanceRecords      AttendanceRecord[]
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
 
   @@index([branchId])
+  @@index([branchId, gradeLevel])
+}
+
+model Guardian {
+  id              String        @id @default(uuid())
+  organizationId  String
+  branchId        String?
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  alternatePhone  String?
+  addressLine1    String?
+  addressLine2    String?
+  city            String?
+  state           String?
+  postalCode      String?
+  country         String?
+  notes           String?
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch          Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  students        StudentGuardian[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([branchId])
+}
+
+model StudentGuardian {
+  id           String          @id @default(uuid())
+  studentId    String
+  guardianId   String
+  relationship String?
+  isPrimary    Boolean         @default(false)
+  contactOrder Int?
+  student      StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian     Guardian        @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([studentId, guardianId])
+  @@index([guardianId])
 }
 
 model TeacherProfile {

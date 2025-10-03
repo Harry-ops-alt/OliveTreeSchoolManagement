@@ -1,4 +1,4 @@
-import type { ID, Role } from "./index";
+import type { ID, Role } from "./base";
 
 export interface SessionUser {
   id: ID;
