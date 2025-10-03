@@ -98,6 +98,16 @@ model Organization {
 model Branch {
   id                 String               @id @default(uuid())
   name               String
+  addressLine1       String?
+  addressLine2       String?
+  city               String?
+  state              String?
+  postalCode         String?
+  country            String?
+  timezone           String?
+  phone              String?
+  email              String?
+  notes              String?
   organizationId     String
   organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   users              User[]

@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Branch, Prisma } from '@prisma/client';
+import { Branch, Classroom, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { UpdateOrganizationDto } from './dto/update-organization.dto';
-import { CreateBranchDto } from './dto/create-branch.dto';
-import { UpdateBranchDto } from './dto/update-branch.dto';
+import { CreateOrganizationDto } from './dto/create-organization.dto.js';
+import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
+import { CreateBranchDto } from './dto/create-branch.dto.js';
+import { UpdateBranchDto } from './dto/update-branch.dto.js';
+import { CreateClassroomDto } from './dto/create-classroom.dto.js';
+import { UpdateClassroomDto } from './dto/update-classroom.dto.js';
 
 export type OrganizationWithBranches = Prisma.OrganizationGetPayload<{
   include: { branches: true };
@@ -22,9 +24,7 @@ export class OrgsService {
         name: dto.name,
         branches: dto.branches
           ? {
-              create: dto.branches.map((branch) => ({
-                name: branch.name,
-              })),
+              create: dto.branches.map((branch) => this.mapBranchCreateData(branch)),
             }
           : undefined,
       },
@@ -63,9 +63,7 @@ export class OrgsService {
 
     if (dto.branches?.length) {
       data.branches = {
-        create: dto.branches.map((branch) => ({
-          name: branch.name,
-        })),
+        create: dto.branches.map((branch) => this.mapBranchCreateData(branch)),
       };
     }
 
@@ -102,7 +100,7 @@ export class OrgsService {
     return this.prisma.branch.create({
       data: {
         organizationId: orgId,
-        name: dto.name,
+        ...this.mapBranchCreateData(dto),
       },
     });
   }
@@ -112,40 +110,141 @@ export class OrgsService {
     branchId: string,
     dto: UpdateBranchDto,
   ): Promise<Branch> {
-    await this.ensureOrganizationExists(orgId);
-    const branch = await this.prisma.branch.findFirst({
-      where: {
-        id: branchId,
-        organizationId: orgId,
-      },
-    });
+    const branch = await this.ensureBranchInOrg(orgId, branchId);
 
-    if (!branch) {
-      throw new NotFoundException(`Branch ${branchId} not found in organization ${orgId}`);
+    const data: Prisma.BranchUpdateInput = {};
+
+    if (typeof dto.name !== 'undefined') {
+      data.name = dto.name;
+    }
+    if (typeof dto.addressLine1 !== 'undefined') {
+      data.addressLine1 = dto.addressLine1 ?? null;
+    }
+    if (typeof dto.addressLine2 !== 'undefined') {
+      data.addressLine2 = dto.addressLine2 ?? null;
+    }
+    if (typeof dto.city !== 'undefined') {
+      data.city = dto.city ?? null;
+    }
+    if (typeof dto.state !== 'undefined') {
+      data.state = dto.state ?? null;
+    }
+    if (typeof dto.postalCode !== 'undefined') {
+      data.postalCode = dto.postalCode ?? null;
+    }
+    if (typeof dto.country !== 'undefined') {
+      data.country = dto.country ?? null;
+    }
+    if (typeof dto.timezone !== 'undefined') {
+      data.timezone = dto.timezone ?? null;
+    }
+    if (typeof dto.phone !== 'undefined') {
+      data.phone = dto.phone ?? null;
+    }
+    if (typeof dto.email !== 'undefined') {
+      data.email = dto.email ?? null;
+    }
+    if (typeof dto.notes !== 'undefined') {
+      data.notes = dto.notes ?? null;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return branch;
     }
 
     return this.prisma.branch.update({
       where: { id: branchId },
-      data: {
-        name: dto.name ?? branch.name,
-      },
+      data,
     });
   }
 
   async removeBranch(orgId: string, branchId: string): Promise<Branch> {
-    await this.ensureOrganizationExists(orgId);
-    const branch = await this.prisma.branch.findFirst({
+    await this.ensureBranchInOrg(orgId, branchId);
+
+    return this.prisma.branch.delete({ where: { id: branchId } });
+  }
+
+  async listClassrooms(orgId: string, branchId: string): Promise<Classroom[]> {
+    await this.ensureBranchInOrg(orgId, branchId);
+
+    return this.prisma.classroom.findMany({
+      where: { branchId },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async createClassroom(
+    orgId: string,
+    branchId: string,
+    dto: CreateClassroomDto,
+  ): Promise<Classroom> {
+    await this.ensureBranchInOrg(orgId, branchId);
+
+    return this.prisma.classroom.create({
+      data: {
+        branchId,
+        ...this.mapClassroomCreateData(dto),
+      },
+    });
+  }
+
+  async updateClassroom(
+    orgId: string,
+    branchId: string,
+    classroomId: string,
+    dto: UpdateClassroomDto,
+  ): Promise<Classroom> {
+    await this.ensureBranchInOrg(orgId, branchId);
+    const classroom = await this.prisma.classroom.findFirst({
       where: {
-        id: branchId,
-        organizationId: orgId,
+        id: classroomId,
+        branchId,
       },
     });
 
-    if (!branch) {
-      throw new NotFoundException(`Branch ${branchId} not found in organization ${orgId}`);
+    if (!classroom) {
+      throw new NotFoundException(`Classroom ${classroomId} not found in branch ${branchId}`);
     }
 
-    return this.prisma.branch.delete({ where: { id: branchId } });
+    const data: Prisma.ClassroomUpdateInput = {};
+
+    if (typeof dto.name !== 'undefined') {
+      data.name = dto.name;
+    }
+    if (typeof dto.capacity !== 'undefined') {
+      data.capacity = dto.capacity ?? null;
+    }
+    if (typeof dto.location !== 'undefined') {
+      data.location = dto.location ?? null;
+    }
+    if (typeof dto.notes !== 'undefined') {
+      data.notes = dto.notes ?? null;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return classroom;
+    }
+
+    return this.prisma.classroom.update({
+      where: { id: classroomId },
+      data,
+    });
+  }
+
+  async removeClassroom(orgId: string, branchId: string, classroomId: string): Promise<Classroom> {
+    await this.ensureBranchInOrg(orgId, branchId);
+    const classroom = await this.prisma.classroom.findFirst({
+      where: {
+        id: classroomId,
+        branchId,
+      },
+    });
+
+    if (!classroom) {
+      throw new NotFoundException(`Classroom ${classroomId} not found in branch ${branchId}`);
+    }
+
+    return this.prisma.classroom.delete({ where: { id: classroomId } });
   }
 
   private async ensureOrganizationExists(id: string): Promise<void> {
@@ -153,5 +252,46 @@ export class OrgsService {
     if (!exists) {
       throw new NotFoundException(`Organization ${id} not found`);
     }
+  }
+
+  private async ensureBranchInOrg(orgId: string, branchId: string): Promise<Branch> {
+    await this.ensureOrganizationExists(orgId);
+    const branch = await this.prisma.branch.findFirst({
+      where: {
+        id: branchId,
+        organizationId: orgId,
+      },
+    });
+
+    if (!branch) {
+      throw new NotFoundException(`Branch ${branchId} not found in organization ${orgId}`);
+    }
+
+    return branch;
+  }
+
+  private mapBranchCreateData(dto: CreateBranchDto): Prisma.BranchCreateWithoutOrganizationInput {
+    return {
+      name: dto.name,
+      addressLine1: dto.addressLine1 ?? null,
+      addressLine2: dto.addressLine2 ?? null,
+      city: dto.city ?? null,
+      state: dto.state ?? null,
+      postalCode: dto.postalCode ?? null,
+      country: dto.country ?? null,
+      timezone: dto.timezone ?? null,
+      phone: dto.phone ?? null,
+      email: dto.email ?? null,
+      notes: dto.notes ?? null,
+    };
+  }
+
+  private mapClassroomCreateData(dto: CreateClassroomDto): Prisma.ClassroomCreateWithoutBranchInput {
+    return {
+      name: dto.name,
+      capacity: dto.capacity ?? null,
+      location: dto.location ?? null,
+      notes: dto.notes ?? null,
+    };
   }
 }
