@@ -14,11 +14,14 @@
   "dependencies": {
     "@olive/types": "workspace:*",
     "@olive/ui": "workspace:*",
+    "@hookform/resolvers": "^3.9.1",
     "lucide-react": "^0.441.0",
     "next": "14.2.33",
     "next-auth": "^4.24.11",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-hook-form": "^7.53.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@olive/config": "workspace:*",
