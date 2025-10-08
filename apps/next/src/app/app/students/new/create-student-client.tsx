@@ -10,13 +10,15 @@ import {
 } from '../../../../lib/api/students';
 import { StudentForm, type StudentFormValues } from '../../../../components/students/student-form';
 import { useToastHelpers } from '../../../../components/toast/toast-provider';
+import type { StudentFormBranchOption } from '../../../../lib/types/student-form';
 
 interface CreateStudentClientProps {
   orgId: string;
   defaultBranchId?: string | null;
+  branches: StudentFormBranchOption[];
 }
 
-export function CreateStudentClient({ orgId, defaultBranchId }: CreateStudentClientProps): JSX.Element {
+export function CreateStudentClient({ orgId, defaultBranchId, branches }: CreateStudentClientProps): JSX.Element {
   const router = useRouter();
   const { success: showSuccessToast, error: showErrorToast } = useToastHelpers();
 
@@ -65,6 +67,7 @@ export function CreateStudentClient({ orgId, defaultBranchId }: CreateStudentCli
       <StudentForm
         mode="create"
         orgId={orgId}
+        branchOptions={branches}
         initialValues={initialValues}
         onSubmitCreate={handleCreate}
         onSubmitUpdate={handleUpdate}

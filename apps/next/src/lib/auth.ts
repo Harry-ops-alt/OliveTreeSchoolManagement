@@ -29,11 +29,14 @@ export async function loginAction(email: string, password: string) {
 
     const data = JSON.parse(text) as LoginResponse;
 
+    const expiresAt = new Date(Date.now() + data.expiresIn * 1000);
+
     cookies().set(AUTH_COOKIE_NAME, data.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      expires: expiresAt,
       maxAge: AUTH_COOKIE_MAX_AGE,
     });
 

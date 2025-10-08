@@ -9,14 +9,6 @@ export type UpdateAttendanceFormState = {
   error?: string;
 };
 
-const initialState: UpdateAttendanceFormState = {
-  success: false,
-};
-
-export function getInitialAttendanceFormState(): UpdateAttendanceFormState {
-  return { ...initialState };
-}
-
 export async function updateAttendanceSessionAction(
   _prevState: UpdateAttendanceFormState,
   formData: FormData,

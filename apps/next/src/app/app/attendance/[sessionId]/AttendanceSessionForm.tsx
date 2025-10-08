@@ -4,10 +4,7 @@ import { useMemo } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import type { AttendanceSessionDetail } from '../types';
 import { ATTENDANCE_STATUSES } from '../types';
-import {
-  getInitialAttendanceFormState,
-  updateAttendanceSessionAction,
-} from './actions';
+import { UpdateAttendanceFormState, updateAttendanceSessionAction } from './actions';
 
 interface AttendanceSessionFormProps {
   session: AttendanceSessionDetail;
@@ -28,7 +25,10 @@ function SubmitButton() {
 }
 
 export function AttendanceSessionForm({ session }: AttendanceSessionFormProps) {
-  const initialState = useMemo(() => getInitialAttendanceFormState(), []);
+  const initialState = useMemo<UpdateAttendanceFormState>(
+    () => ({ success: false }),
+    [],
+  );
   const [state, formAction] = useFormState(updateAttendanceSessionAction, initialState);
 
   return (

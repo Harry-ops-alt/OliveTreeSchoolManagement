@@ -16,10 +16,6 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { OrgsService, OrganizationWithBranches } from './orgs.service.js';
 import { CreateOrganizationDto } from './dto/create-organization.dto.js';
 import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
-import { CreateBranchDto } from './dto/create-branch.dto.js';
-import { UpdateBranchDto } from './dto/update-branch.dto.js';
-import { CreateClassroomDto } from './dto/create-classroom.dto.js';
-import { UpdateClassroomDto } from './dto/update-classroom.dto.js';
 
 @Controller('orgs')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -75,87 +71,4 @@ export class OrgsController {
     return this.orgsService.remove(id);
   }
 
-  @Get(':id/branches')
-  @Roles(
-    Role.SUPER_ADMIN,
-    Role.SCHOOL_ADMIN,
-    Role.OPERATIONS_MANAGER,
-    Role.BRANCH_MANAGER,
-  )
-  listBranches(@Param('id', ParseUUIDPipe) id: string) {
-    return this.orgsService.listBranches(id);
-  }
-
-  @Post(':id/branches')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
-  createBranch(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: CreateBranchDto,
-  ) {
-    return this.orgsService.createBranch(id, dto);
-  }
-
-  @Patch(':id/branches/:branchId')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.BRANCH_MANAGER)
-  updateBranch(
-    @Param('id', ParseUUIDPipe) orgId: string,
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Body() dto: UpdateBranchDto,
-  ) {
-    return this.orgsService.updateBranch(orgId, branchId, dto);
-  }
-
-  @Delete(':id/branches/:branchId')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
-  removeBranch(
-    @Param('id', ParseUUIDPipe) orgId: string,
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-  ) {
-    return this.orgsService.removeBranch(orgId, branchId);
-  }
-
-  @Get(':id/branches/:branchId/rooms')
-  @Roles(
-    Role.SUPER_ADMIN,
-    Role.SCHOOL_ADMIN,
-    Role.OPERATIONS_MANAGER,
-    Role.BRANCH_MANAGER,
-  )
-  listClassrooms(
-    @Param('id', ParseUUIDPipe) orgId: string,
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-  ) {
-    return this.orgsService.listClassrooms(orgId, branchId);
-  }
-
-  @Post(':id/branches/:branchId/rooms')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.BRANCH_MANAGER)
-  createClassroom(
-    @Param('id', ParseUUIDPipe) orgId: string,
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Body() dto: CreateClassroomDto,
-  ) {
-    return this.orgsService.createClassroom(orgId, branchId, dto);
-  }
-
-  @Patch(':id/branches/:branchId/rooms/:roomId')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.BRANCH_MANAGER)
-  updateClassroom(
-    @Param('id', ParseUUIDPipe) orgId: string,
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Param('roomId', ParseUUIDPipe) roomId: string,
-    @Body() dto: UpdateClassroomDto,
-  ) {
-    return this.orgsService.updateClassroom(orgId, branchId, roomId, dto);
-  }
-
-  @Delete(':id/branches/:branchId/rooms/:roomId')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.BRANCH_MANAGER)
-  removeClassroom(
-    @Param('id', ParseUUIDPipe) orgId: string,
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Param('roomId', ParseUUIDPipe) roomId: string,
-  ) {
-    return this.orgsService.removeClassroom(orgId, branchId, roomId);
-  }
 }

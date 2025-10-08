@@ -1,5 +1,5 @@
 {
-  "extends": "@olive/config/tsconfig/nest",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "resolvePackageJsonExports": true,
     "module": "Node16",

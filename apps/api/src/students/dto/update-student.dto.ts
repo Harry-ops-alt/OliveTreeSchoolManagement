@@ -131,6 +131,10 @@ export class UpdateStudentDto {
   branchId?: string;
 
   @IsOptional()
+  @IsUUID()
+  classroomId?: string;
+
+  @IsOptional()
   @IsString()
   @MaxLength(80)
   firstName?: string;
@@ -253,6 +257,11 @@ export class UpdateStudentDto {
   @IsArray()
   @ArrayMaxSize(5)
   inlineGuardians?: UpdateInlineGuardianDto[];
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID(undefined, { each: true })
+  classScheduleIds?: string[];
 
   @IsOptional()
   @IsBoolean()

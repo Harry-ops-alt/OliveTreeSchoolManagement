@@ -2,6 +2,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsUUID,
   IsBoolean,
   IsDateString,
   IsEmail,
@@ -11,7 +12,6 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
-  IsUUID,
   Length,
   MaxLength,
   ValidateNested,
@@ -127,6 +127,10 @@ export class CreateStudentDto {
   @IsNotEmpty()
   @IsUUID()
   branchId!: string;
+
+  @IsOptional()
+  @IsUUID()
+  classroomId?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -256,4 +260,9 @@ export class CreateStudentDto {
   @ArrayMinSize(1)
   @ArrayMaxSize(5)
   inlineGuardians?: InlineGuardianDto[];
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID(undefined, { each: true })
+  classScheduleIds?: string[];
 }

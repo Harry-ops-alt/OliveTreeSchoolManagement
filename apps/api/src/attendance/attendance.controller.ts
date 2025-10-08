@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { AttendanceService } from './attendance.service.js';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
@@ -45,7 +36,7 @@ export class AttendanceController {
   @Capabilities('operations:attendance')
   getSession(
     @CurrentUser() user: SessionUserData,
-    @Param('id', new ParseUUIDPipe()) sessionId: string,
+    @Param('id') sessionId: string,
   ) {
     return this.attendanceService.getSession(user, sessionId);
   }
@@ -54,9 +45,18 @@ export class AttendanceController {
   @Capabilities('operations:attendance')
   submitRecords(
     @CurrentUser() user: SessionUserData,
-    @Param('id', new ParseUUIDPipe()) sessionId: string,
+    @Param('id') sessionId: string,
     @Body() dto: SubmitAttendanceRecordsDto,
   ) {
     return this.attendanceService.submitRecords(user, sessionId, dto);
+  }
+
+  @Get('students/:studentId')
+  @Capabilities('operations:attendance')
+  listStudentAttendance(
+    @CurrentUser() user: SessionUserData,
+    @Param('studentId', ParseUUIDPipe) studentId: string,
+  ) {
+    return this.attendanceService.listStudentAttendance(user, studentId);
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,6 +12,7 @@ import type {
   UpdateInlineGuardianInput,
   UpdateStudentPayload,
 } from '../../lib/api/students';
+import type { StudentFormBranchOption } from '../../lib/types/student-form';
 
 const STUDENT_STATUS_OPTIONS = [
   'PROSPECT',
@@ -55,6 +56,8 @@ type InlineGuardianField = {
 export type StudentFormValues = {
   orgId: string;
   branchId: string;
+  classroomId?: string;
+  classScheduleIds: string[];
   userId?: string;
   firstName: string;
   lastName: string;
@@ -86,9 +89,34 @@ export type StudentFormValues = {
 export interface StudentFormProps {
   mode: 'create' | 'update';
   orgId: string;
+  branchOptions?: StudentFormBranchOption[];
   initialValues?: Partial<StudentFormValues>;
   onSubmitCreate: (payload: CreateStudentPayload) => Promise<void>;
   onSubmitUpdate: (payload: UpdateStudentPayload) => Promise<void>;
+}
+
+function formatDayOfWeek(value?: string | null): string {
+  if (!value) {
+    return 'Unknown day';
+  }
+
+  const normalized = value.replace(/_/g, ' ').toLowerCase();
+  return normalized.replace(/\b\w/g, (match) => match.toUpperCase());
+}
+
+function formatScheduleTimeRange(start?: string | null, end?: string | null): string {
+  if (!start || !end) {
+    return 'Time unavailable';
+  }
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return 'Time unavailable';
+  }
+
+  const options: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+  return `${startDate.toLocaleTimeString([], options)} - ${endDate.toLocaleTimeString([], options)}`;
 }
 
 function trimmedOrUndefined(value?: string | null): string | undefined {
@@ -210,6 +238,12 @@ const inlineGuardianSchema = z.object({
 const studentFormSchema = z.object({
   orgId: z.string().uuid(),
   branchId: z.string({ required_error: 'Branch is required' }).uuid('Branch must be a valid UUID'),
+  classroomId: optionalUUID(),
+  classScheduleIds: z
+    .array(z.string().uuid())
+    .max(20)
+    .optional()
+    .default([]),
   userId: optionalUUID(),
   firstName: z
     .string()
@@ -291,6 +325,8 @@ function buildDefaultValues(orgId: string, overrides?: Partial<StudentFormValues
   return {
     orgId,
     branchId: overrides?.branchId ?? '',
+    classroomId: overrides?.classroomId ?? '',
+    classScheduleIds: overrides?.classScheduleIds ?? [],
     userId: overrides?.userId,
     firstName: overrides?.firstName ?? '',
     lastName: overrides?.lastName ?? '',
@@ -362,7 +398,7 @@ function buildInlineGuardianPayload(value: InlineGuardianField): InlineGuardianI
   };
 }
 
-export function StudentForm({ mode, orgId, initialValues, onSubmitCreate, onSubmitUpdate }: StudentFormProps): JSX.Element {
+export function StudentForm({ mode, orgId, branchOptions = [], initialValues, onSubmitCreate, onSubmitUpdate }: StudentFormProps): JSX.Element {
   const defaultValues = useMemo(() => buildDefaultValues(orgId, initialValues), [orgId, initialValues]);
 
   const {
@@ -370,6 +406,8 @@ export function StudentForm({ mode, orgId, initialValues, onSubmitCreate, onSubm
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
+    setValue,
+    watch,
   } = useForm<StudentFormValues>({
     resolver: zodResolver(studentFormSchema),
     defaultValues,
@@ -379,16 +417,72 @@ export function StudentForm({ mode, orgId, initialValues, onSubmitCreate, onSubm
   const guardianArray = useFieldArray({ control, name: 'guardians' });
   const inlineGuardianArray = useFieldArray({ control, name: 'inlineGuardians' });
 
+  const watchBranchId = watch('branchId');
+  const watchClassroomId = watch('classroomId');
+  const watchClassScheduleIds = watch('classScheduleIds');
+  const classScheduleIdsValue = watchClassScheduleIds ?? [];
+
+  const selectedBranch = useMemo(() => branchOptions.find((branch) => branch.id === watchBranchId) ?? null, [branchOptions, watchBranchId]);
+  const classroomOptions = selectedBranch?.classrooms ?? [];
+  const classScheduleOptions = selectedBranch?.classSchedules ?? [];
+
+  useEffect(() => {
+    register('classScheduleIds');
+  }, [register]);
+
+  useEffect(() => {
+    if (!selectedBranch) {
+      if (watchClassroomId) {
+        setValue('classroomId', '', { shouldDirty: true });
+      }
+      if (classScheduleIdsValue.length) {
+        setValue('classScheduleIds', [], { shouldDirty: true });
+      }
+      return;
+    }
+
+    if (watchClassroomId && !classroomOptions.some((option) => option.id === watchClassroomId)) {
+      setValue('classroomId', '', { shouldDirty: true });
+    }
+
+    if (classScheduleIdsValue.length) {
+      const allowedIds = new Set(classScheduleOptions.map((schedule) => schedule.id));
+      const filtered = classScheduleIdsValue.filter((id) => allowedIds.has(id));
+      if (filtered.length !== classScheduleIdsValue.length) {
+        setValue('classScheduleIds', filtered, { shouldDirty: true });
+      }
+    }
+  }, [selectedBranch, watchClassroomId, classScheduleIdsValue, classroomOptions, classScheduleOptions, setValue]);
+
+  const toggleClassSchedule = (scheduleId: string) => {
+    const current = classScheduleIdsValue;
+    if (current.includes(scheduleId)) {
+      setValue(
+        'classScheduleIds',
+        current.filter((id) => id !== scheduleId),
+        { shouldDirty: true },
+      );
+    } else {
+      setValue('classScheduleIds', [...current, scheduleId], { shouldDirty: true });
+    }
+  };
+
   const onSubmit = async (values: StudentFormValues) => {
     const trimmedGuardians = values.guardians
       .filter((guardian) => guardian.guardianId.trim().length > 0)
       .map((guardian) => buildGuardianPayload(guardian, mode));
     const inlineGuardians = values.inlineGuardians.map(buildInlineGuardianPayload);
+    const classroomIdInput = trimmedOrUndefined(values.classroomId);
+    const normalizedClassScheduleIds = Array.from(new Set(values.classScheduleIds ?? [])).filter(
+      (id) => typeof id === 'string' && id.trim().length > 0,
+    );
 
     if (mode === 'create') {
       const payload: CreateStudentPayload = {
         orgId: values.orgId,
         branchId: values.branchId,
+        classroomId: classroomIdInput,
+        classScheduleIds: normalizedClassScheduleIds.length ? normalizedClassScheduleIds : undefined,
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
         studentNumber: values.studentNumber.trim(),
@@ -423,6 +517,8 @@ export function StudentForm({ mode, orgId, initialValues, onSubmitCreate, onSubm
 
     const payload: UpdateStudentPayload = {
       branchId: trimmedOrUndefined(values.branchId),
+      classroomId: typeof values.classroomId === 'string' ? classroomIdInput ?? null : undefined,
+      classScheduleIds: normalizedClassScheduleIds,
       firstName: trimmedOrUndefined(values.firstName),
       lastName: trimmedOrUndefined(values.lastName),
       studentNumber: trimmedOrUndefined(values.studentNumber),
@@ -462,13 +558,29 @@ export function StudentForm({ mode, orgId, initialValues, onSubmitCreate, onSubm
         subtitle="Key identification and enrollment details"
       >
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Branch ID" error={errors.branchId?.message}>
-            <input
-              {...register('branchId')}
-              className="w-full rounded-xl border border-emerald-700/40 bg-emerald-900/60 px-3 py-2 text-sm text-emerald-50 focus:border-emerald-400 focus:outline-none"
-              placeholder="Branch UUID"
-            />
-          </Field>
+          {branchOptions.length ? (
+            <Field label="Branch" error={errors.branchId?.message}>
+              <select
+                {...register('branchId')}
+                className="w-full rounded-xl border border-emerald-700/40 bg-emerald-900/60 px-3 py-2 text-sm text-emerald-50 focus:border-emerald-400 focus:outline-none"
+              >
+                <option value="">Select a branch</option>
+                {branchOptions.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          ) : (
+            <Field label="Branch ID" error={errors.branchId?.message}>
+              <input
+                {...register('branchId')}
+                className="w-full rounded-xl border border-emerald-700/40 bg-emerald-900/60 px-3 py-2 text-sm text-emerald-50 focus:border-emerald-400 focus:outline-none"
+                placeholder="Branch UUID"
+              />
+            </Field>
+          )}
           <Field label="Student number" error={errors.studentNumber?.message}>
             <input
               {...register('studentNumber')}
@@ -476,6 +588,25 @@ export function StudentForm({ mode, orgId, initialValues, onSubmitCreate, onSubm
               placeholder="STU-2025-001"
             />
           </Field>
+          {branchOptions.length ? (
+            <Field label="Classroom" error={errors.classroomId?.message}>
+              <select
+                {...register('classroomId')}
+                className="w-full rounded-xl border border-emerald-700/40 bg-emerald-900/60 px-3 py-2 text-sm text-emerald-50 focus:border-emerald-400 focus:outline-none"
+                disabled={!selectedBranch || classroomOptions.length === 0}
+              >
+                <option value="">No classroom</option>
+                {classroomOptions.map((classroom) => (
+                  <option key={classroom.id} value={classroom.id}>
+                    {classroom.name}
+                  </option>
+                ))}
+              </select>
+              {!selectedBranch ? (
+                <p className="mt-1 text-xs text-emerald-200/70">Select a branch to pick a classroom.</p>
+              ) : null}
+            </Field>
+          ) : null}
           <Field label="First name" error={errors.firstName?.message}>
             <input
               {...register('firstName')}
@@ -511,6 +642,43 @@ export function StudentForm({ mode, orgId, initialValues, onSubmitCreate, onSubm
             />
           </Field>
         </div>
+        {branchOptions.length ? (
+          <div className="mt-4 space-y-3">
+            <h3 className="text-sm font-semibold text-emerald-100">Class schedules</h3>
+            {!selectedBranch ? (
+              <p className="text-xs text-emerald-200/70">Select a branch to choose class schedules.</p>
+            ) : classScheduleOptions.length === 0 ? (
+              <p className="text-xs text-emerald-200/70">No class schedules found for this branch.</p>
+            ) : (
+              <div className="grid gap-2 md:grid-cols-2">
+                {classScheduleOptions.map((schedule) => {
+                  const isChecked = classScheduleIdsValue.includes(schedule.id);
+                  const scheduleTime = formatScheduleTimeRange(schedule.startTime, schedule.endTime);
+                  const dayLabel = formatDayOfWeek(schedule.dayOfWeek);
+                  return (
+                    <label
+                      key={schedule.id}
+                      className="flex items-start gap-2 rounded-xl border border-emerald-700/40 bg-emerald-900/50 px-3 py-2 text-sm text-emerald-100"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleClassSchedule(schedule.id)}
+                        className="mt-1 h-4 w-4 rounded border border-emerald-600/50 bg-emerald-900 text-emerald-500 focus:ring-emerald-400"
+                      />
+                      <span>
+                        <span className="font-medium text-white">{schedule.title}</span>
+                        <span className="block text-xs uppercase tracking-wide text-emerald-300/80">
+                          {dayLabel} · {scheduleTime}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
       </FormSection>
 
       <FormSection title="Contact details" subtitle="Primary communication channels">

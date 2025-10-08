@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { BookOpen, CalendarClock, Loader2, Plus, User } from 'lucide-react';
 import {
   createBranch,
   deleteBranch,
@@ -11,10 +11,28 @@ import {
   deleteClassroom,
   listClassrooms,
   updateClassroom,
+  listTeacherProfiles,
 } from '../../../../lib/api/branches';
+import {
+  ClassScheduleConflictError,
+  createClassSchedule,
+  deleteClassSchedule,
+  listClassSchedules,
+  updateClassSchedule,
+} from '../../../../lib/api/class-schedules';
 import type { Branch, Classroom } from '../../../../lib/types/branches';
+import type {
+  ClassSchedule,
+  ClassScheduleClashDetails,
+  CreateClassScheduleInput,
+  UpdateClassScheduleInput,
+} from '../../../../lib/types/class-schedules';
 import { BranchForm, type BranchFormValues } from '../../../../components/branches/branch-form';
 import { ClassroomForm, type ClassroomFormValues } from '../../../../components/branches/classroom-form';
+import { ClassScheduleForm } from '../../../../components/branches/class-schedule-form';
+import type { ClassScheduleFormValues } from '../../../../components/branches/class-schedule-form';
+import type { TeacherProfileSummary } from '../../../../lib/types/class-schedules';
+import { TimetableGrid } from '../../../../components/branches/timetable-grid';
 import { useToastHelpers } from '../../../../components/toast/toast-provider';
 
 function mapBranchToFormValues(branch: Branch): BranchFormValues {
@@ -42,6 +60,26 @@ function mapClassroomToFormValues(classroom: Classroom): ClassroomFormValues {
   };
 }
 
+function toFormTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '00:00';
+  }
+  return date.toISOString().slice(11, 16);
+}
+
+function mapScheduleToFormValues(schedule: ClassSchedule): ClassScheduleFormValues {
+  return {
+    title: schedule.title,
+    description: schedule.description ?? '',
+    dayOfWeek: schedule.dayOfWeek,
+    startTime: toFormTime(schedule.startTime),
+    endTime: toFormTime(schedule.endTime),
+    classroomId: schedule.classroomId ?? '',
+    teacherProfileId: schedule.teacherProfileId ?? '',
+  };
+}
+
 interface BranchesSettingsClientProps {
   defaultBranchId?: string;
 }
@@ -52,6 +90,26 @@ type ClassroomModalState =
   | { mode: 'create'; branch: Branch }
   | { mode: 'edit'; branch: Branch; classroom: Classroom }
   | null;
+
+type ScheduleModalState =
+  | { mode: 'create' }
+  | { mode: 'edit'; schedule: ClassSchedule };
+
+type ClassesState =
+  | {
+      status: 'idle';
+    }
+  | {
+      status: 'loading';
+    }
+  | {
+      status: 'error';
+      message: string;
+    }
+  | {
+      status: 'success';
+      data: ClassSchedule[];
+    };
 
 export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClientProps): JSX.Element {
   const { success: showSuccessToast, error: showErrorToast } = useToastHelpers();
@@ -66,6 +124,14 @@ export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClie
   const [loadingClassrooms, setLoadingClassrooms] = useState(false);
   const [classroomModal, setClassroomModal] = useState<ClassroomModalState>(null);
   const [processingClassroom, setProcessingClassroom] = useState(false);
+  const [classesState, setClassesState] = useState<ClassesState>({ status: 'idle' });
+  const [teacherProfiles, setTeacherProfiles] = useState<TeacherProfileSummary[]>([]);
+  const [loadingTeacherProfiles, setLoadingTeacherProfiles] = useState(false);
+  const [scheduleModal, setScheduleModal] = useState<ScheduleModalState | null>(null);
+  const [processingSchedule, setProcessingSchedule] = useState(false);
+  const [deletingScheduleId, setDeletingScheduleId] = useState<string | null>(null);
+  const [scheduleConflictDetails, setScheduleConflictDetails] = useState<ClassScheduleClashDetails | null>(null);
+  const [scheduleConflictMessage, setScheduleConflictMessage] = useState<string | null>(null);
 
   const selectedBranch = useMemo(
     () => branches.find((branch) => branch.id === selectedBranchId) ?? null,
@@ -106,6 +172,37 @@ export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClie
     [showErrorToast],
   );
 
+  const refreshTeacherProfiles = useCallback(
+    async (branchId: string) => {
+      setLoadingTeacherProfiles(true);
+      try {
+        const data = await listTeacherProfiles(branchId);
+        setTeacherProfiles(data);
+      } catch (error) {
+        console.error('Failed to load teacher profiles', error);
+        showErrorToast('Unable to load teacher profiles for this branch.');
+      } finally {
+        setLoadingTeacherProfiles(false);
+      }
+    },
+    [showErrorToast],
+  );
+
+  const refreshClasses = useCallback(
+    async (branchId: string) => {
+      setClassesState({ status: 'loading' });
+      try {
+        const data = await listClassSchedules(branchId);
+        setClassesState({ status: 'success', data });
+      } catch (error) {
+        console.error('Failed to load classes', error);
+        setClassesState({ status: 'error', message: 'Unable to load classes for this branch.' });
+        showErrorToast('Unable to load classes for this branch.');
+      }
+    },
+    [showErrorToast],
+  );
+
   useEffect(() => {
     void refreshBranches();
   }, [refreshBranches]);
@@ -113,10 +210,15 @@ export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClie
   useEffect(() => {
     if (!selectedBranchId) {
       setClassrooms([]);
+      setTeacherProfiles([]);
+      setLoadingTeacherProfiles(false);
+      setClassesState({ status: 'idle' });
       return;
     }
     void refreshClassrooms(selectedBranchId);
-  }, [selectedBranchId, refreshClassrooms]);
+    void refreshTeacherProfiles(selectedBranchId);
+    void refreshClasses(selectedBranchId);
+  }, [selectedBranchId, refreshClasses, refreshClassrooms, refreshTeacherProfiles]);
 
   const handleCreateBranch = useCallback(
     async (values: BranchFormValues) => {
@@ -175,7 +277,33 @@ export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClie
         showErrorToast('Unable to delete branch. Please try again.');
       }
     },
-    [refreshBranches, selectedBranchId, showErrorToast, showSuccessToast],
+    [refreshBranches, selectedBranch, showErrorToast, showSuccessToast],
+  );
+
+  const handleDeleteSchedule = useCallback(
+    async (schedule: ClassSchedule) => {
+      if (!selectedBranchId) {
+        return;
+      }
+
+      if (!window.confirm(`Delete ${schedule.title}? This cannot be undone.`)) {
+        return;
+      }
+
+      setDeletingScheduleId(schedule.id);
+      try {
+        await deleteClassSchedule(selectedBranchId, schedule.id);
+        showSuccessToast('Class removed.', 'Schedule deleted');
+        await refreshClasses(selectedBranchId);
+        await refreshTeacherProfiles(selectedBranchId);
+      } catch (error) {
+        console.error('Failed to delete class schedule', error);
+        showErrorToast('Unable to delete class schedule. Please try again.');
+      } finally {
+        setDeletingScheduleId(null);
+      }
+    },
+    [refreshClasses, refreshTeacherProfiles, selectedBranchId, showErrorToast, showSuccessToast],
   );
 
   const handleCreateClassroom = useCallback(
@@ -427,6 +555,152 @@ export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClie
                       </div>
                     )}
                   </section>
+
+                  <section className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-base font-semibold text-white">Classes</h4>
+                      <button
+                        type="button"
+                        disabled={!selectedBranch}
+                        onClick={() => {
+                          if (!selectedBranch) {
+                            return;
+                          }
+                          setScheduleConflictDetails(null);
+                          setScheduleConflictMessage(null);
+                          setScheduleModal({ mode: 'create' });
+                        }}
+                        className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <Plus className="h-4 w-4" aria-hidden /> Add class
+                      </button>
+                    </div>
+
+                    {classesState.status === 'loading' ? (
+                      <div className="flex items-center gap-2 rounded-xl border border-emerald-700/40 bg-emerald-950/60 px-4 py-3 text-sm text-emerald-100/70">
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Checking scheduled classes…
+                      </div>
+                    ) : classesState.status === 'error' ? (
+                      <div className="rounded-xl border border-red-500/40 bg-red-950/40 p-4 text-sm text-red-100/80">
+                        {classesState.message}
+                      </div>
+                    ) : classesState.status === 'success' && classesState.data.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-emerald-500/40 bg-emerald-900/40 p-6 text-sm text-emerald-100/70">
+                        No classes scheduled for this branch yet.
+                      </div>
+                    ) : (
+                      <ul className="space-y-3">
+                        {classesState.status === 'success' &&
+                          classesState.data.map((schedule) => {
+                            const leadTeacher = schedule.teacherProfile?.user;
+                            const additionalStaff = schedule.assignments.filter(
+                              (assignment) => assignment.role !== 'LEAD_TEACHER',
+                            );
+
+                            return (
+                              <li
+                                key={schedule.id}
+                                className="rounded-xl border border-emerald-700/40 bg-emerald-950/60 p-4"
+                              >
+                                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                  <div className="space-y-1 md:max-w-lg">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex items-center gap-2 text-white">
+                                        <BookOpen className="h-4 w-4" aria-hidden />
+                                        <span className="text-sm font-semibold">{schedule.title}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          type="button"
+                                          className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-500/20"
+                                          onClick={() => {
+                                            setScheduleConflictDetails(null);
+                                            setScheduleConflictMessage(null);
+                                            setScheduleModal({ mode: 'edit', schedule });
+                                          }}
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={deletingScheduleId === schedule.id}
+                                          className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                          onClick={() => handleDeleteSchedule(schedule)}
+                                        >
+                                          {deletingScheduleId === schedule.id ? 'Deleting…' : 'Delete'}
+                                        </button>
+                                      </div>
+                                    </div>
+                                    {schedule.description ? (
+                                      <p className="text-xs text-emerald-100/70">{schedule.description}</p>
+                                    ) : null}
+                                    <div className="flex flex-wrap items-center gap-3 text-xs text-emerald-100/70">
+                                      <span className="inline-flex items-center gap-1">
+                                        <CalendarClock className="h-3.5 w-3.5" aria-hidden />
+                                        {`${schedule.dayOfWeek[0]}${schedule.dayOfWeek.slice(1).toLowerCase()} • ${new Date(schedule.startTime).toLocaleTimeString([], {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })} – ${new Date(schedule.endTime).toLocaleTimeString([], {
+                                          hour: '2-digit',
+                                          minute: '2-digit',
+                                        })}`}
+                                      </span>
+                                      {schedule.classroom ? (
+                                        <span className="inline-flex items-center gap-1">
+                                          <User className="h-3.5 w-3.5" aria-hidden />
+                                          {schedule.classroom.name}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-2 text-xs text-emerald-100/80">
+                                    <div className="flex items-center gap-2 font-medium text-white">
+                                      <User className="h-4 w-4" aria-hidden />
+                                      Lead teacher
+                                    </div>
+                                    <div className="rounded-lg border border-emerald-700/40 bg-emerald-900/40 px-3 py-2">
+                                      {leadTeacher ? (
+                                        <div>
+                                          <p className="font-semibold">
+                                            {`${leadTeacher.firstName ?? ''} ${leadTeacher.lastName ?? ''}`.trim() ||
+                                              leadTeacher.email ||
+                                              'Unnamed instructor'}
+                                          </p>
+                                          {leadTeacher.email ? (
+                                            <p className="text-emerald-100/70">{leadTeacher.email}</p>
+                                          ) : null}
+                                        </div>
+                                      ) : (
+                                        <p className="text-emerald-100/60">No lead teacher assigned.</p>
+                                      )}
+                                    </div>
+
+                                    {additionalStaff.length > 0 ? (
+                                      <div>
+                                        <p className="mb-1 font-medium text-white">Support staff</p>
+                                        <ul className="space-y-1">
+                                          {additionalStaff.map((assignment) => (
+                                            <li key={assignment.id} className="rounded border border-emerald-700/40 bg-emerald-900/40 px-3 py-2">
+                                              <p className="font-semibold">
+                                                {`${assignment.user?.firstName ?? ''} ${assignment.user?.lastName ?? ''}`.trim() ||
+                                                  assignment.user?.email ||
+                                                  'Staff member'}
+                                              </p>
+                                              <p className="text-emerald-100/70">{assignment.role.replace('_', ' ').toLowerCase()}</p>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    )}
+                  </section>
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-emerald-500/40 bg-emerald-900/40 p-10 text-center text-sm text-emerald-100/70">
@@ -513,6 +787,92 @@ export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClie
                   onCancel={() => setClassroomModal(null)}
                   isSubmitting={processingClassroom}
                   submitLabel={classroomModal.mode === 'create' ? 'Create classroom' : 'Save changes'}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {scheduleModal && selectedBranch ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
+          <div className="w-full max-w-3xl">
+            <div className="rounded-2xl border border-emerald-700/40 bg-emerald-950/90 p-6 shadow-2xl">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold text-white">
+                    {scheduleModal.mode === 'create' ? 'Add class schedule' : 'Edit class schedule'}
+                  </h2>
+                  <p className="mt-1 text-sm text-emerald-100/70">
+                    {scheduleModal.mode === 'create'
+                      ? 'Create a new scheduled class for this branch.'
+                      : 'Update this class schedule. Conflicts will be highlighted.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-full border border-emerald-500/40 bg-emerald-800/30 px-3 py-1 text-sm text-emerald-100"
+                  onClick={() => {
+                    setScheduleModal(null);
+                    setScheduleConflictDetails(null);
+                    setScheduleConflictMessage(null);
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="mt-6">
+                <ClassScheduleForm
+                  classrooms={classrooms}
+                  teacherProfiles={teacherProfiles}
+                  teacherProfilesLoading={loadingTeacherProfiles}
+                  initialValues={
+                    scheduleModal.mode === 'edit' ? mapScheduleToFormValues(scheduleModal.schedule) : undefined
+                  }
+                  isSubmitting={processingSchedule}
+                  conflictDetails={scheduleConflictDetails}
+                  conflictMessage={scheduleConflictMessage}
+                  onCancel={() => {
+                    setScheduleModal(null);
+                    setScheduleConflictDetails(null);
+                    setScheduleConflictMessage(null);
+                  }}
+                  onSubmit={async (payload: CreateClassScheduleInput) => {
+                    if (!selectedBranch) {
+                      return;
+                    }
+
+                    setProcessingSchedule(true);
+                    setScheduleConflictDetails(null);
+                    setScheduleConflictMessage(null);
+
+                    try {
+                      if (scheduleModal.mode === 'create') {
+                        await createClassSchedule(selectedBranch.id, payload);
+                        showSuccessToast('Class scheduled.', 'Class created');
+                      } else {
+                        const updateBody: UpdateClassScheduleInput = { ...payload };
+                        await updateClassSchedule(selectedBranch.id, scheduleModal.schedule.id, updateBody);
+                        showSuccessToast('Class updated.', 'Class updated');
+                      }
+
+                      setScheduleModal(null);
+                      await refreshClasses(selectedBranch.id);
+                      await refreshTeacherProfiles(selectedBranch.id);
+                    } catch (error) {
+                      if (error instanceof ClassScheduleConflictError) {
+                        setScheduleConflictDetails(error.clashes);
+                        setScheduleConflictMessage(error.message);
+                        return;
+                      }
+
+                      console.error('Failed to save class schedule', error);
+                      showErrorToast('Unable to save class schedule. Please try again.');
+                    } finally {
+                      setProcessingSchedule(false);
+                    }
+                  }}
                 />
               </div>
             </div>

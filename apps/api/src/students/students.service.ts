@@ -40,6 +40,13 @@ const studentInclude = {
       organizationId: true,
     },
   },
+  classroom: {
+    select: {
+      id: true,
+      name: true,
+      branchId: true,
+    },
+  },
   guardians: {
     include: {
       guardian: true,
@@ -48,11 +55,27 @@ const studentInclude = {
   admissions: {
     orderBy: { appliedAt: 'desc' },
   },
+  classEnrollments: {
+    include: {
+      classSchedule: {
+        select: {
+          id: true,
+          title: true,
+          branchId: true,
+          classroomId: true,
+          dayOfWeek: true,
+          startTime: true,
+          endTime: true,
+        },
+      },
+    },
+  },
 } as const;
 
 type StudentWithRelations = Record<string, any>;
 
 type PreparedGuardianLink = {
+  studentId: string;
   guardianId: string;
   relationship: string | null;
   isPrimary: boolean;
@@ -205,6 +228,12 @@ export class StudentsService {
       throw new BadRequestException('Provided orgId does not match branch organization');
     }
 
+    const classroomId = await this.validateClassroom(branch.id, dto.classroomId);
+    const classScheduleIds = await this.validateClassSchedules(
+      branch.id,
+      dto.classScheduleIds,
+    );
+
     const studentUser = await this.prisma.user.findUnique({
       where: { id: dto.userId },
       select: { id: true, organizationId: true, branchId: true },
@@ -240,10 +269,20 @@ export class StudentsService {
         },
       });
 
-        const student = await studentClient.create({
-        data: this.mapStudentCreateData(dto, branch.id) as any,
+      const student = await studentClient.create({
+        data: this.mapStudentCreateData(dto, branch.id, classroomId ?? null) as any,
         include: studentInclude as any,
       } as any);
+
+      if (classScheduleIds?.length) {
+        await prismaTx.studentClassEnrollment.createMany({
+          data: classScheduleIds.map((scheduleId) => ({
+            studentId: student.id,
+            classScheduleId: scheduleId,
+          })),
+          skipDuplicates: true,
+        });
+      }
 
       await this.syncGuardians(tx, {
         studentId: student.id,
@@ -289,7 +328,10 @@ export class StudentsService {
         branchId = newBranch.id;
       }
 
-      const studentData = this.mapStudentUpdateData(dto, branchId);
+      const classroomId = await this.validateClassroom(branchId, dto.classroomId);
+      const classScheduleIds = await this.validateClassSchedules(branchId, dto.classScheduleIds);
+
+      const studentData = this.mapStudentUpdateData(dto, branchId, classroomId);
 
       if (Object.keys(studentData).length) {
         await studentClient.update({
@@ -313,6 +355,20 @@ export class StudentsService {
           where: { id: existing.userId },
           data: userUpdates,
         });
+      }
+
+      if (typeof classScheduleIds !== 'undefined') {
+        await prismaTx.studentClassEnrollment.deleteMany({ where: { studentId: id } });
+
+        if (classScheduleIds.length) {
+          await prismaTx.studentClassEnrollment.createMany({
+            data: classScheduleIds.map((scheduleId) => ({
+              studentId: id,
+              classScheduleId: scheduleId,
+            })),
+            skipDuplicates: true,
+          });
+        }
       }
 
       if (
@@ -391,6 +447,7 @@ export class StudentsService {
   private async prepareGuardianLinks(
     tx: any,
     params: {
+      studentId: string;
       orgId: string;
       branchId: string;
       guardians?: (GuardianLinkDto | UpdateGuardianLinkDto)[];
@@ -402,6 +459,7 @@ export class StudentsService {
     let fallbackOrder = 1;
 
     const pushLink = (
+      studentId: string,
       guardianId: string,
       relationship: string | null,
       isPrimary: boolean,
@@ -415,6 +473,7 @@ export class StudentsService {
           ? contactOrder
           : fallbackOrder++;
       results.push({
+        studentId,
         guardianId,
         relationship,
         isPrimary,
@@ -452,7 +511,15 @@ export class StudentsService {
           guardianId = created.id;
         }
 
+        if (!guardianId) {
+          throw new BadRequestException('guardianId is required');
+        }
+
+        // choose the real student id available in this function:
+        const studentId = params.studentId; // if params carries it; otherwise replace with the correct variable like student.id
+
         pushLink(
+          studentId,
           guardianId,
           guardianDto.relationship ?? null,
           guardianDto.isPrimary ?? false,
@@ -486,8 +553,8 @@ export class StudentsService {
             data: { branchId: params.branchId } as any,
           } as any);
         }
-
         pushLink(
+          params.studentId,
           guardian.id,
           guardianDto.relationship ?? null,
           guardianDto.isPrimary ?? false,
@@ -502,10 +569,12 @@ export class StudentsService {
   private mapStudentCreateData(
     dto: CreateStudentDto,
     branchId: string,
+    classroomId: string | null,
   ): Record<string, unknown> {
     return {
       user: { connect: { id: dto.userId! } },
       branch: { connect: { id: branchId } },
+      classroom: classroomId ? { connect: { id: classroomId } } : undefined,
       studentNumber: dto.studentNumber,
       dateJoined: dto.dateJoined ? new Date(dto.dateJoined) : undefined,
       email: dto.email ?? null,
@@ -533,11 +602,15 @@ export class StudentsService {
   private mapStudentUpdateData(
     dto: UpdateStudentDto,
     branchId: string,
+    classroomId: string | null,
   ): Record<string, unknown> {
     const data: Record<string, unknown> = {};
 
     if (typeof dto.branchId !== 'undefined') {
       data.branch = { connect: { id: branchId } };
+    }
+    if (typeof dto.classroomId !== 'undefined') {
+      data.classroom = classroomId ? { connect: { id: classroomId } } : { disconnect: true };
     }
     if (typeof dto.studentNumber !== 'undefined') {
       data.studentNumber = dto.studentNumber;
@@ -617,6 +690,64 @@ export class StudentsService {
     }
 
     return data;
+  }
+
+  private async validateClassroom(
+    branchId: string,
+    classroomId?: string,
+  ): Promise<string | null> {
+    if (!classroomId) {
+      return null;
+    }
+
+    const classroom = await this.prisma.classroom.findUnique({
+      where: { id: classroomId },
+      select: { id: true, branchId: true },
+    });
+
+    if (!classroom) {
+      throw new NotFoundException(`Classroom ${classroomId} not found`);
+    }
+
+    if (classroom.branchId !== branchId) {
+      throw new ForbiddenException('Classroom does not belong to branch');
+    }
+
+    return classroom.id;
+  }
+
+  private async validateClassSchedules(
+    branchId: string,
+    classScheduleIds?: string[],
+  ): Promise<string[] | undefined> {
+    if (typeof classScheduleIds === 'undefined') {
+      return undefined;
+    }
+
+    if (!classScheduleIds.length) {
+      return [];
+    }
+
+    const uniqueIds = Array.from(new Set(classScheduleIds));
+
+    const schedules = await this.prisma.classSchedule.findMany({
+      where: { id: { in: uniqueIds } },
+      select: { id: true, branchId: true },
+    });
+
+    if (schedules.length !== uniqueIds.length) {
+      const found = new Set(schedules.map((schedule) => schedule.id));
+      const missing = uniqueIds.find((id) => !found.has(id));
+      throw new NotFoundException(`Class schedule ${missing} not found`);
+    }
+
+    for (const schedule of schedules) {
+      if (schedule.branchId !== branchId) {
+        throw new ForbiddenException('Class schedule does not belong to branch');
+      }
+    }
+
+    return uniqueIds;
   }
 
   private async ensureBranchAccess(

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAttendanceSessions } from './data';
 import { ATTENDANCE_STATUSES } from './types';
+import { CreateAttendanceSessionButton } from './CreateAttendanceSessionButton';
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   dateStyle: 'full',
@@ -20,15 +21,18 @@ export default async function AttendanceIndexPage() {
   return (
     <div className="min-h-screen bg-emerald-950 text-emerald-50">
       <div className="mx-auto max-w-6xl px-6 py-12 space-y-8">
-        <header className="space-y-2">
-          <p className="text-xs uppercase tracking-wide text-emerald-300/80">Attendance</p>
-          <h1 className="text-2xl font-semibold text-white lg:text-3xl">
-            Daily attendance sessions
-          </h1>
-          <p className="text-sm text-emerald-100/70">
-            Review recent classroom check-ins, monitor attendance status, and drill into individual
-            sessions for more detail.
-          </p>
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-wide text-emerald-300/80">Attendance</p>
+            <h1 className="text-2xl font-semibold text-white lg:text-3xl">
+              Daily attendance sessions
+            </h1>
+            <p className="text-sm text-emerald-100/70">
+              Review recent classroom check-ins, monitor attendance status, and drill into individual
+              sessions for more detail.
+            </p>
+          </div>
+          <CreateAttendanceSessionButton />
         </header>
 
         {sessions.length === 0 ? (

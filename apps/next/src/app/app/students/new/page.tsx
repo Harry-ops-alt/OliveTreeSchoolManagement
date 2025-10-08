@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '../../../../lib/session';
 import { CreateStudentClient } from './create-student-client';
+import { getStudentFormBranches } from '../form-data';
 
 export default async function CreateStudentPage(): Promise<JSX.Element> {
   const session = await getSession();
@@ -15,7 +16,13 @@ export default async function CreateStudentPage(): Promise<JSX.Element> {
     redirect('/app/students');
   }
 
+  const branchOptions = await getStudentFormBranches();
+
   return (
-    <CreateStudentClient orgId={session.orgId} defaultBranchId={session.branchId} />
+    <CreateStudentClient
+      orgId={session.orgId}
+      defaultBranchId={session.branchId}
+      branches={branchOptions}
+    />
   );
 }

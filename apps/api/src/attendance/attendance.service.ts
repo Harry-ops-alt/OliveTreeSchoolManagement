@@ -91,7 +91,7 @@ export class AttendanceService {
       orderBy: { date: 'desc' },
       include: {
         branch: { select: { id: true, name: true } },
-        classSchedule: { select: { id: true, title: true } },
+        classSchedule: { select: { id: true, title: true, startTime: true } },
         _count: { select: { records: true } },
       },
     });
@@ -224,6 +224,71 @@ export class AttendanceService {
     });
 
     return this.getSession(user, sessionId);
+  }
+
+  async listStudentAttendance(user: SessionUserData, studentId: string) {
+    const student = await this.prisma.studentProfile.findUnique({
+      where: { id: studentId },
+      select: {
+        id: true,
+        branch: {
+          select: {
+            id: true,
+            name: true,
+            organizationId: true,
+          },
+        },
+      },
+    });
+
+    if (!student) {
+      throw new NotFoundException('Student not found');
+    }
+
+    if (!student.branch) {
+      throw new NotFoundException('Student branch not found');
+    }
+
+    this.assertSessionAccess(user, student.branch);
+
+    const records = await this.prisma.attendanceRecord.findMany({
+      where: {
+        studentId,
+      },
+      orderBy: {
+        session: {
+          date: 'desc',
+        },
+      },
+      include: {
+        session: {
+          select: {
+            id: true,
+            date: true,
+            status: true,
+            notes: true,
+            branch: { select: { id: true, name: true } },
+            classSchedule: { select: { id: true, title: true } },
+          },
+        },
+      },
+    });
+
+    return records.map((record) => ({
+      session: {
+        id: record.session.id,
+        date: record.session.date,
+        status: record.session.status,
+        notes: record.session.notes,
+        branch: record.session.branch,
+        classSchedule: record.session.classSchedule,
+      },
+      record: {
+        status: record.status,
+        notes: record.notes,
+        recordedAt: record.recordedAt,
+      },
+    }));
   }
 
   private async ensureBranchAccess(user: SessionUserData, branchId: string) {

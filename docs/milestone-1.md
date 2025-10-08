@@ -59,7 +59,21 @@ pnpm storybook:ui     # launch shared UI Storybook
 - **Config updates**: `apps/api/tsconfig.json` uses Node16 module resolution; auth imports use `.js` extensions for compatibility.
 - **Login UI**: `apps/next/src/app/(auth)/login/page.tsx` consumes server `login()` action, renders errors, and relies on middleware to protect `/app` routes.
 
+## Stage 2 – Admissions Saved Views (07 Oct 2025)
+- **Prisma**: Added `AdmissionLeadView` model in `apps/api/prisma/schema.prisma`; migration `add_admission_lead_view` applied via `pnpm --filter api exec prisma migrate dev --name add_admission_lead_view`.
+- **DTOs**: Created `CreateLeadViewDto`, `UpdateLeadViewDto`, and `ListLeadViewsDto` (`apps/api/src/admissions/dto/`) for request validation.
+- **API**: `admissions.service.ts` and `admissions.controller.ts` now expose `GET/POST/PATCH/DELETE /admissions/leads/views` with role guards.
+- **Frontend API client**: `apps/next/src/lib/api/admissions.ts` includes helpers (`listAdmissionLeadViews`, `createAdmissionLeadView`, `updateAdmissionLeadView`, `deleteAdmissionLeadView`).
+- **UI**: `SavedViewsMenu` component and admissions page update let users save/apply/delete filter presets with default view support.
+
 ### Validation Checklist
+- Run `pnpm --filter api exec prisma migrate dev --name add_admission_lead_view` (noop if already applied).
+- Start both services (`pnpm dev:api`, `pnpm dev:next`).
+- Navigate to `/app/admissions` and ensure existing filters still function.
+- Save current filters, set as default, refresh page to confirm auto-application.
+- Delete a saved view and verify it disappears without page reload.
+
+### Validation Checklist (Stage 1)
 - Run `pnpm --filter api run prisma:migrate` and `pnpm --filter api run db:seed` with Postgres running locally (`DATABASE_URL` in `apps/api/.env`).
 - Start services via `pnpm dev:api` and `pnpm dev:next`.
 - Visit `http://localhost:3000/login` and sign in with seeded credentials (`admin@olive.school` / `AdminPass123!`).

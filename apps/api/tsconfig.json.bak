@@ -1,0 +1,11 @@
+{
+  "extends": "@olive/config/tsconfig/nest",
+  "compilerOptions": {
+    "resolvePackageJsonExports": true,
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "outDir": "./dist"
+  }
+}

@@ -1,5 +1,10 @@
 import {
+  AdmissionApplicationStatus,
+  AdmissionContactChannel,
+  AdmissionDecision,
+  AdmissionLeadStage,
   AdmissionStatus,
+  AdmissionTaskStatus,
   AttendanceSessionStatus,
   AttendanceStatus,
   DayOfWeek,
@@ -66,6 +71,70 @@ type SeedStudent = {
     decidedAt?: Date | null;
     notes?: string | null;
   };
+};
+
+type AdmissionLeadStageEventSeed = {
+  id: string;
+  fromStage?: AdmissionLeadStage;
+  toStage: AdmissionLeadStage;
+  changedAt: Date;
+  reason?: string;
+};
+
+type AdmissionLeadContactSeed = {
+  id: string;
+  channel: AdmissionContactChannel;
+  summary: string;
+  occurredAt: Date;
+};
+
+type AdmissionLeadTaskSeed = {
+  id: string;
+  title: string;
+  description?: string;
+  dueAt?: Date;
+  status: AdmissionTaskStatus;
+  assigneeId?: string;
+};
+
+type AdmissionLeadApplicationSeed = {
+  id: string;
+  yearGroup?: string;
+  requestedStart?: Date;
+  status: AdmissionApplicationStatus;
+  submittedAt?: Date;
+  decision?: AdmissionDecision;
+  decisionNotes?: string;
+  decisionAt?: Date;
+};
+
+type AdmissionLeadOfferSeed = {
+  id: string;
+  templateKey: string;
+  issuedAt?: Date;
+  expiresAt?: Date;
+  signedAt?: Date;
+};
+
+type AdmissionLeadSeed = {
+  id: string;
+  parentFirstName: string;
+  parentLastName: string;
+  parentEmail: string;
+  parentPhone?: string;
+  studentFirstName?: string;
+  studentLastName?: string;
+  programmeInterest?: string;
+  preferredContactAt?: Date;
+  source?: string;
+  notes?: string;
+  tags: string[];
+  stage: AdmissionLeadStage;
+  stageEvents?: AdmissionLeadStageEventSeed[];
+  contacts?: AdmissionLeadContactSeed[];
+  tasks?: AdmissionLeadTaskSeed[];
+  application?: AdmissionLeadApplicationSeed;
+  offer?: AdmissionLeadOfferSeed;
 };
 
 async function main() {
@@ -684,8 +753,6 @@ async function main() {
       branchId: branch.id,
       name: "Classroom A",
       capacity: 28,
-      location: "Science Block",
-      notes: "Equipped with interactive display",
     },
     create: {
       id: "main-campus-room-a",
@@ -694,8 +761,6 @@ async function main() {
       },
       name: "Classroom A",
       capacity: 28,
-      location: "Science Block",
-      notes: "Equipped with interactive display",
     },
   });
 
@@ -902,6 +967,324 @@ async function main() {
         recordedAt: new Date("2025-10-06T09:45:00.000Z"),
       },
     });
+  }
+
+  const admissionLeadSeeds: AdmissionLeadSeed[] = [
+    {
+      id: "lead-chioma-okafor",
+      parentFirstName: "Chioma",
+      parentLastName: "Okafor",
+      parentEmail: "chioma.okafor@example.com",
+      parentPhone: "+2347010001111",
+      studentFirstName: "Ada",
+      studentLastName: "Okafor",
+      programmeInterest: "Year 7 STEM",
+      preferredContactAt: new Date("2025-10-07T10:30:00.000Z"),
+      source: "Open Day",
+      notes: "Family is asking about scholarship opportunities and boarding.",
+      tags: ["Priority", "Scholarship"],
+      stage: AdmissionLeadStage.CONTACTED,
+      stageEvents: [
+        {
+          id: "lead-chioma-okafor-stage-contacted",
+          fromStage: AdmissionLeadStage.NEW,
+          toStage: AdmissionLeadStage.CONTACTED,
+          changedAt: new Date("2025-10-05T09:45:00.000Z"),
+          reason: "Parent confirmed interest after open day follow-up.",
+        },
+      ],
+      contacts: [
+        {
+          id: "lead-chioma-okafor-contact-initial",
+          channel: AdmissionContactChannel.CALL,
+          summary: "Initial call with parent to explain admissions timeline and scholarship options.",
+          occurredAt: new Date("2025-10-05T09:30:00.000Z"),
+        },
+      ],
+      tasks: [
+        {
+          id: "lead-chioma-okafor-task-pack",
+          title: "Send scholarship information pack",
+          description: "Email scholarship application requirements and deadlines to the family.",
+          dueAt: new Date("2025-10-08T17:00:00.000Z"),
+          status: AdmissionTaskStatus.IN_PROGRESS,
+          assigneeId: admissionsOfficer.id,
+        },
+      ],
+    },
+    {
+      id: "lead-samuel-adegbite",
+      parentFirstName: "Samuel",
+      parentLastName: "Adegbite",
+      parentEmail: "samuel.adegbite@example.com",
+      parentPhone: "+2348025558899",
+      studentFirstName: "Ife",
+      studentLastName: "Adegbite",
+      programmeInterest: "Creative Arts Programme",
+      preferredContactAt: new Date("2025-10-09T14:00:00.000Z"),
+      source: "Website Enquiry",
+      notes: "Student is musically gifted; interested in taster session availability.",
+      tags: ["Music", "Taster"],
+      stage: AdmissionLeadStage.TASTER_BOOKED,
+      stageEvents: [
+        {
+          id: "lead-samuel-adegbite-stage-contacted",
+          fromStage: AdmissionLeadStage.NEW,
+          toStage: AdmissionLeadStage.CONTACTED,
+          changedAt: new Date("2025-10-03T11:20:00.000Z"),
+          reason: "Responded to website enquiry and shared programme overview.",
+        },
+        {
+          id: "lead-samuel-adegbite-stage-taster",
+          fromStage: AdmissionLeadStage.CONTACTED,
+          toStage: AdmissionLeadStage.TASTER_BOOKED,
+          changedAt: new Date("2025-10-04T10:05:00.000Z"),
+          reason: "Parent confirmed attendance at creative arts taster session.",
+        },
+      ],
+      contacts: [
+        {
+          id: "lead-samuel-adegbite-contact-email",
+          channel: AdmissionContactChannel.EMAIL,
+          summary: "Sent calendar invite and checklist for upcoming creative arts taster.",
+          occurredAt: new Date("2025-10-04T10:10:00.000Z"),
+        },
+      ],
+      tasks: [
+        {
+          id: "lead-samuel-adegbite-task-confirm",
+          title: "Confirm taster session attendance",
+          description: "Call the family the day before to reconfirm arrival time and materials.",
+          dueAt: new Date("2025-10-09T09:00:00.000Z"),
+          status: AdmissionTaskStatus.PENDING,
+          assigneeId: branchManager.id,
+        },
+      ],
+    },
+    {
+      id: "lead-lara-balogun",
+      parentFirstName: "Lara",
+      parentLastName: "Balogun",
+      parentEmail: "lara.balogun@example.com",
+      parentPhone: "+2348091112233",
+      studentFirstName: "Seyi",
+      studentLastName: "Balogun",
+      programmeInterest: "Year 9 Boarding",
+      preferredContactAt: new Date("2025-10-02T16:00:00.000Z"),
+      source: "Agent Referral",
+      notes: "High priority applicant referred by partnering agency.",
+      tags: ["Agent", "High Priority"],
+      stage: AdmissionLeadStage.OFFER,
+      stageEvents: [
+        {
+          id: "lead-lara-balogun-stage-contacted",
+          fromStage: AdmissionLeadStage.NEW,
+          toStage: AdmissionLeadStage.CONTACTED,
+          changedAt: new Date("2025-09-28T15:20:00.000Z"),
+          reason: "Agent introduction call and requirement review.",
+        },
+        {
+          id: "lead-lara-balogun-stage-offer",
+          fromStage: AdmissionLeadStage.TASTER_BOOKED,
+          toStage: AdmissionLeadStage.OFFER,
+          changedAt: new Date("2025-10-03T18:40:00.000Z"),
+          reason: "Admissions committee approved conditional offer.",
+        },
+      ],
+      contacts: [
+        {
+          id: "lead-lara-balogun-contact-agent",
+          channel: AdmissionContactChannel.NOTE,
+          summary: "Agent provided updated academic transcripts and recommendation letters.",
+          occurredAt: new Date("2025-10-01T13:15:00.000Z"),
+        },
+      ],
+      tasks: [
+        {
+          id: "lead-lara-balogun-task-offer",
+          title: "Follow up on offer acceptance",
+          description: "Call Lara to walk through acceptance paperwork and deposit timeline.",
+          dueAt: new Date("2025-10-10T12:00:00.000Z"),
+          status: AdmissionTaskStatus.IN_PROGRESS,
+          assigneeId: admissionsOfficer.id,
+        },
+      ],
+      application: {
+        id: "application-lara-balogun",
+        yearGroup: "Year 9",
+        requestedStart: new Date("2026-01-10T08:00:00.000Z"),
+        status: AdmissionApplicationStatus.UNDER_REVIEW,
+        submittedAt: new Date("2025-09-30T12:00:00.000Z"),
+        decision: AdmissionDecision.OFFERED,
+        decisionNotes: "Offer issued pending deposit payment.",
+        decisionAt: new Date("2025-10-03T18:30:00.000Z"),
+      },
+      offer: {
+        id: "offer-lara-balogun",
+        templateKey: "2025-offer-standard",
+        issuedAt: new Date("2025-10-03T18:35:00.000Z"),
+        expiresAt: new Date("2025-10-17T18:35:00.000Z"),
+      },
+    },
+  ];
+
+  for (const seed of admissionLeadSeeds) {
+    const leadRecord = await prisma.admissionLead.upsert({
+      where: { id: seed.id },
+      update: {
+        branchId: branch.id,
+        assignedStaffId: admissionsOfficer.id,
+        parentFirstName: seed.parentFirstName,
+        parentLastName: seed.parentLastName,
+        parentEmail: seed.parentEmail,
+        parentPhone: seed.parentPhone ?? null,
+        studentFirstName: seed.studentFirstName ?? null,
+        studentLastName: seed.studentLastName ?? null,
+        programmeInterest: seed.programmeInterest ?? null,
+        preferredContactAt: seed.preferredContactAt ?? null,
+        source: seed.source ?? null,
+        notes: seed.notes ?? null,
+        tags: seed.tags,
+        stage: seed.stage,
+      },
+      create: {
+        id: seed.id,
+        branchId: branch.id,
+        assignedStaffId: admissionsOfficer.id,
+        parentFirstName: seed.parentFirstName,
+        parentLastName: seed.parentLastName,
+        parentEmail: seed.parentEmail,
+        parentPhone: seed.parentPhone ?? null,
+        studentFirstName: seed.studentFirstName ?? null,
+        studentLastName: seed.studentLastName ?? null,
+        programmeInterest: seed.programmeInterest ?? null,
+        preferredContactAt: seed.preferredContactAt ?? null,
+        source: seed.source ?? null,
+        notes: seed.notes ?? null,
+        tags: seed.tags,
+        stage: seed.stage,
+      },
+    });
+
+    for (const event of seed.stageEvents ?? []) {
+      await prisma.admissionLeadStageHistory.upsert({
+        where: { id: event.id },
+        update: {
+          fromStage: event.fromStage ?? null,
+          toStage: event.toStage,
+          changedAt: event.changedAt,
+          changedById: admissionsOfficer.id,
+          reason: event.reason ?? null,
+        },
+        create: {
+          id: event.id,
+          leadId: leadRecord.id,
+          fromStage: event.fromStage ?? null,
+          toStage: event.toStage,
+          changedAt: event.changedAt,
+          changedById: admissionsOfficer.id,
+          reason: event.reason ?? null,
+        },
+      });
+    }
+
+    for (const contact of seed.contacts ?? []) {
+      await prisma.admissionLeadContact.upsert({
+        where: { id: contact.id },
+        update: {
+          leadId: leadRecord.id,
+          userId: admissionsOfficer.id,
+          channel: contact.channel,
+          summary: contact.summary,
+          occurredAt: contact.occurredAt,
+        },
+        create: {
+          id: contact.id,
+          leadId: leadRecord.id,
+          userId: admissionsOfficer.id,
+          channel: contact.channel,
+          summary: contact.summary,
+          occurredAt: contact.occurredAt,
+        },
+      });
+    }
+
+    for (const task of seed.tasks ?? []) {
+      await prisma.admissionTask.upsert({
+        where: { id: task.id },
+        update: {
+          leadId: leadRecord.id,
+          title: task.title,
+          description: task.description ?? null,
+          dueAt: task.dueAt ?? null,
+          status: task.status,
+          assigneeId: task.assigneeId ?? null,
+          createdById: admissionsOfficer.id,
+        },
+        create: {
+          id: task.id,
+          leadId: leadRecord.id,
+          title: task.title,
+          description: task.description ?? null,
+          dueAt: task.dueAt ?? null,
+          status: task.status,
+          assigneeId: task.assigneeId ?? null,
+          createdById: admissionsOfficer.id,
+        },
+      });
+    }
+
+    if (seed.application) {
+      await prisma.admissionApplication.upsert({
+        where: { id: seed.application.id },
+        update: {
+          leadId: leadRecord.id,
+          branchId: branch.id,
+          yearGroup: seed.application.yearGroup ?? null,
+          requestedStart: seed.application.requestedStart ?? null,
+          status: seed.application.status,
+          submittedAt: seed.application.submittedAt ?? null,
+          reviewedById: admissionsOfficer.id,
+          decision: seed.application.decision ?? null,
+          decisionNotes: seed.application.decisionNotes ?? null,
+          decisionAt: seed.application.decisionAt ?? null,
+        },
+        create: {
+          id: seed.application.id,
+          leadId: leadRecord.id,
+          branchId: branch.id,
+          yearGroup: seed.application.yearGroup ?? null,
+          requestedStart: seed.application.requestedStart ?? null,
+          status: seed.application.status,
+          submittedAt: seed.application.submittedAt ?? null,
+          reviewedById: admissionsOfficer.id,
+          decision: seed.application.decision ?? null,
+          decisionNotes: seed.application.decisionNotes ?? null,
+          decisionAt: seed.application.decisionAt ?? null,
+        },
+      });
+
+      if (seed.offer) {
+        await prisma.admissionOfferLetter.upsert({
+          where: { id: seed.offer.id },
+          update: {
+            applicationId: seed.application.id,
+            templateKey: seed.offer.templateKey,
+            issuedAt: seed.offer.issuedAt ?? new Date(),
+            expiresAt: seed.offer.expiresAt ?? null,
+            signedAt: seed.offer.signedAt ?? null,
+          },
+          create: {
+            id: seed.offer.id,
+            applicationId: seed.application.id,
+            templateKey: seed.offer.templateKey,
+            issuedAt: seed.offer.issuedAt ?? new Date(),
+            expiresAt: seed.offer.expiresAt ?? null,
+            signedAt: seed.offer.signedAt ?? null,
+          },
+        });
+      }
+    }
   }
 
   const financeTransactions = [
