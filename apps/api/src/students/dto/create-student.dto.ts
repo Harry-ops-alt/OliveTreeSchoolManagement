@@ -17,12 +17,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import {
-  GENDER_VALUES,
-  STUDENT_STATUS_VALUES,
-  GenderValue,
-  StudentStatusValue,
-} from '../students.constants.js';
+import { GENDER_VALUES, STUDENT_STATUS_VALUES } from '../students.constants';
+import type { GenderValue, StudentStatusValue } from '../students.constants';
 
 export class GuardianLinkDto {
   @IsUUID()

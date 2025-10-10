@@ -13,8 +13,8 @@ import {
   DEFAULT_STUDENT_PAGE_SIZE,
   MAX_STUDENT_PAGE_SIZE,
   STUDENT_STATUS_VALUES,
-  StudentStatusValue,
-} from '../students.constants.js';
+} from '../students.constants';
+import type { StudentStatusValue } from '../students.constants';
 
 const toBoolean = ({ value }: { value: unknown }): boolean | undefined => {
   if (value === undefined || value === null || value === '') {

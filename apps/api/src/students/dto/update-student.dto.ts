@@ -15,12 +15,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import {
-  GENDER_VALUES,
-  STUDENT_STATUS_VALUES,
-  GenderValue,
-  StudentStatusValue,
-} from '../students.constants';
+import { GENDER_VALUES, STUDENT_STATUS_VALUES } from '../students.constants';
+import type { GenderValue, StudentStatusValue } from '../students.constants';
 import { GuardianLinkDto, InlineGuardianDto } from './create-student.dto';
 
 export class UpdateGuardianLinkDto implements Partial<GuardianLinkDto> {
