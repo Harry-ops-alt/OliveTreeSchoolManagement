@@ -165,10 +165,6 @@ describe('AdmissionsController (e2e)', () => {
 
       const response = await request(server).post('/admissions/leads').send(payload);
 
-      if (response.status !== 201) {
-        // eslint-disable-next-line no-console
-        console.log('createLead response', response.status, response.body, response.text);
-      }
       expect(response.status).toBe(201);
       expect(response.body.parentFirstName).toBe('Ada');
       expect(response.body.parentLastName).toBe('Lovelace');
@@ -206,10 +202,6 @@ describe('AdmissionsController (e2e)', () => {
         .patch(`/admissions/leads/${existingLeadId}`)
         .send(payload);
 
-      if (response.status !== 200) {
-        // eslint-disable-next-line no-console
-        console.log('updateLead response', response.status, response.body, response.text);
-      }
       expect(response.status).toBe(200);
       expect(response.body.parentFirstName).toBe('Grace');
       expect(response.body.parentLastName).toBe('Hopper');
@@ -237,10 +229,6 @@ describe('AdmissionsController (e2e)', () => {
         .post(`/admissions/leads/${existingLeadId}/stage`)
         .send(payload);
 
-      if (response.status !== 201) {
-        // eslint-disable-next-line no-console
-        console.log('updateStage response', response.status, response.body, response.text);
-      }
       expect(response.status).toBe(201);
       expect(response.body.stage).toBe(AdmissionLeadStage.CONTACTED);
 
@@ -270,10 +258,6 @@ describe('AdmissionsController (e2e)', () => {
         .post(`/admissions/leads/${existingLeadId}/contacts`)
         .send(payload);
 
-      if (response.status !== 201) {
-        // eslint-disable-next-line no-console
-        console.log('recordContact response', response.status, response.body, response.text);
-      }
       expect(response.status).toBe(201);
       expect(response.body.contacts[0].summary).toBe('Spoke with parent about documents');
       expect(response.body.contacts[0].channel).toBe(AdmissionContactChannel.CALL);
