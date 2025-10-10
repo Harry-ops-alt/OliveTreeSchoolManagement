@@ -17,6 +17,7 @@ export async function loginAction(email: string, password: string) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
+      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
 

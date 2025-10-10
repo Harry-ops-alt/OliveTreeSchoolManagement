@@ -29,7 +29,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@sinclair/typebox": "0.34.51"
+      "@sinclair/typebox": "0.34.41"
     }
   }
 }
