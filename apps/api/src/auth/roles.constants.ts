@@ -1,9 +1,19 @@
 import type { Role } from '@prisma/client';
 
+export enum AdmissionsCapability {
+  ManageLeads = 'admissions.manage_leads',
+  ViewLeads = 'admissions.view_leads',
+  ManageTasters = 'admissions.manage_tasters',
+  ManageApplications = 'admissions.manage_applications',
+}
+
 export type Capability =
   | 'platform:tenancy'
   | 'platform:settings'
-  | 'admissions:manage'
+  | AdmissionsCapability.ManageLeads
+  | AdmissionsCapability.ViewLeads
+  | AdmissionsCapability.ManageTasters
+  | AdmissionsCapability.ManageApplications
   | 'operations:branches'
   | 'operations:rostering'
   | 'operations:attendance'
@@ -21,7 +31,10 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
   SUPER_ADMIN: [
     'platform:tenancy',
     'platform:settings',
-    'admissions:manage',
+    AdmissionsCapability.ManageLeads,
+    AdmissionsCapability.ViewLeads,
+    AdmissionsCapability.ManageTasters,
+    AdmissionsCapability.ManageApplications,
     'operations:branches',
     'operations:rostering',
     'operations:attendance',
@@ -37,7 +50,10 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
   ],
   SCHOOL_ADMIN: [
     'platform:settings',
-    'admissions:manage',
+    AdmissionsCapability.ManageLeads,
+    AdmissionsCapability.ViewLeads,
+    AdmissionsCapability.ManageTasters,
+    AdmissionsCapability.ManageApplications,
     'operations:branches',
     'operations:rostering',
     'operations:attendance',
@@ -48,6 +64,8 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     'tasks:view',
   ],
   OPERATIONS_MANAGER: [
+    AdmissionsCapability.ViewLeads,
+    AdmissionsCapability.ManageTasters,
     'operations:branches',
     'operations:rostering',
     'operations:attendance',
@@ -56,6 +74,10 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     'tasks:view',
   ],
   BRANCH_MANAGER: [
+    AdmissionsCapability.ManageLeads,
+    AdmissionsCapability.ViewLeads,
+    AdmissionsCapability.ManageTasters,
+    AdmissionsCapability.ManageApplications,
     'operations:rostering',
     'operations:attendance',
     'communications:send',
@@ -63,7 +85,10 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     'tasks:view',
   ],
   ADMISSIONS_OFFICER: [
-    'admissions:manage',
+    AdmissionsCapability.ManageLeads,
+    AdmissionsCapability.ViewLeads,
+    AdmissionsCapability.ManageTasters,
+    AdmissionsCapability.ManageApplications,
     'communications:send',
     'analytics:view',
     'tasks:view',
