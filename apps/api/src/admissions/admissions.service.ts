@@ -16,25 +16,26 @@ import {
   Role,
 } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
-import type { SessionUserData } from '../users/users.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
-import type { CreateLeadDto } from './dto/create-lead.dto.js';
-import type { UpdateLeadDto } from './dto/update-lead.dto.js';
-import type { RecordLeadContactDto } from './dto/record-lead-contact.dto.js';
-import type { UpdateLeadStageDto } from './dto/update-lead-stage.dto.js';
-import type { CreateLeadViewDto } from './dto/create-lead-view.dto.js';
-import type { UpdateLeadViewDto } from './dto/update-lead-view.dto.js';
-import type { ListLeadsDto } from './dto/list-leads.dto.js';
-import type { CreateTasterSessionDto } from './dto/create-taster-session.dto.js';
-import type { UpdateTasterSessionDto } from './dto/update-taster-session.dto.js';
-import type { AddTasterAttendeeDto } from './dto/add-taster-attendee.dto.js';
-import type { UpdateTasterAttendeeDto } from './dto/update-taster-attendee.dto.js';
-import type { CreateApplicationDto } from './dto/create-application.dto.js';
-import type { UpdateApplicationDto } from './dto/update-application.dto.js';
-import type { CreateTaskDto } from './dto/create-task.dto.js';
-import type { UpdateTaskStatusDto } from './dto/update-task-status.dto.js';
-import type { BulkUpdateLeadStageDto } from './dto/bulk-update-lead-stage.dto.js';
-import type { BulkAssignLeadStaffDto } from './dto/bulk-assign-lead-staff.dto.js';
+import type { SessionUserData } from '../users/users.service';
+import { PrismaService } from '../prisma/prisma.service';
+import type { CreateLeadDto } from './dto/create-lead.dto';
+import type { UpdateLeadDto } from './dto/update-lead.dto';
+import type { RecordLeadContactDto } from './dto/record-lead-contact.dto';
+import type { UpdateLeadStageDto } from './dto/update-lead-stage.dto';
+import type { CreateLeadViewDto } from './dto/create-lead-view.dto';
+import type { UpdateLeadViewDto } from './dto/update-lead-view.dto';
+import type { ListLeadsDto } from './dto/list-leads.dto';
+import type { CreateTasterSessionDto } from './dto/create-taster-session.dto';
+import type { UpdateTasterSessionDto } from './dto/update-taster-session.dto';
+import type { AddTasterAttendeeDto } from './dto/add-taster-attendee.dto';
+import type { UpdateTasterAttendeeDto } from './dto/update-taster-attendee.dto';
+import type { CreateApplicationDto } from './dto/create-application.dto';
+import type { UpdateApplicationDto } from './dto/update-application.dto';
+import type { CreateTaskDto } from './dto/create-task.dto';
+import type { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import type { BulkUpdateLeadStageDto } from './dto/bulk-update-lead-stage.dto';
+import type { BulkAssignLeadStaffDto } from './dto/bulk-assign-lead-staff.dto';
+import { AdmissionsTasksService } from './admissions.tasks.service';
 
 const leadInclude = {
   branch: { select: { id: true, name: true } },
@@ -90,6 +91,121 @@ const leadInclude = {
   },
 } as const;
 
+const applicationInclude = {
+  branch: { select: { id: true, name: true } },
+  reviewedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+  offer: true,
+  tasks: {
+    orderBy: { dueAt: 'asc' },
+    include: {
+      assignee: { select: { id: true, firstName: true, lastName: true, email: true } },
+      createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+    },
+  },
+  lead: {
+    select: {
+      id: true,
+      branchId: true,
+      assignedStaffId: true,
+    },
+  },
+} as const;
+
+type ApplicationTaskTemplate = {
+  key: string;
+  title: string;
+  description: string;
+  dueInDays: number;
+};
+
+const APPLICATION_ALLOWED_TRANSITIONS: Record<AdmissionApplicationStatus, AdmissionApplicationStatus[]> = {
+  [AdmissionApplicationStatus.DRAFT]: [AdmissionApplicationStatus.SUBMITTED, AdmissionApplicationStatus.WITHDRAWN],
+  [AdmissionApplicationStatus.SUBMITTED]: [
+    AdmissionApplicationStatus.UNDER_REVIEW,
+    AdmissionApplicationStatus.REJECTED,
+    AdmissionApplicationStatus.WITHDRAWN,
+  ],
+  [AdmissionApplicationStatus.UNDER_REVIEW]: [
+    AdmissionApplicationStatus.OFFER_SENT,
+    AdmissionApplicationStatus.REJECTED,
+    AdmissionApplicationStatus.WITHDRAWN,
+  ],
+  [AdmissionApplicationStatus.OFFER_SENT]: [
+    AdmissionApplicationStatus.ACCEPTED,
+    AdmissionApplicationStatus.REJECTED,
+    AdmissionApplicationStatus.WITHDRAWN,
+  ],
+  [AdmissionApplicationStatus.ACCEPTED]: [
+    AdmissionApplicationStatus.ENROLLED,
+    AdmissionApplicationStatus.WITHDRAWN,
+  ],
+  [AdmissionApplicationStatus.ENROLLED]: [],
+  [AdmissionApplicationStatus.REJECTED]: [],
+  [AdmissionApplicationStatus.WITHDRAWN]: [],
+};
+
+const APPLICATION_STATUS_TIMESTAMP_FIELDS = {
+  [AdmissionApplicationStatus.SUBMITTED]: 'submittedAt',
+  [AdmissionApplicationStatus.UNDER_REVIEW]: 'reviewStartedAt',
+  [AdmissionApplicationStatus.OFFER_SENT]: 'offerSentAt',
+  [AdmissionApplicationStatus.ACCEPTED]: 'offerAcceptedAt',
+  [AdmissionApplicationStatus.ENROLLED]: 'enrolledAt',
+} as const satisfies Partial<
+  Record<AdmissionApplicationStatus, keyof Prisma.AdmissionApplicationUncheckedCreateInput & keyof Prisma.AdmissionApplicationUpdateInput & string>
+>;
+
+const APPLICATION_DECISION_STATUSES = new Set<AdmissionApplicationStatus>([
+  AdmissionApplicationStatus.REJECTED,
+  AdmissionApplicationStatus.WITHDRAWN,
+]);
+
+const APPLICATION_STATUS_TASK_TEMPLATES = {
+  [AdmissionApplicationStatus.SUBMITTED]: [
+    {
+      key: 'review',
+      title: 'Review application submission',
+      description: 'Review the new application submission and progress the status when complete.',
+      dueInDays: 2,
+    },
+  ],
+  [AdmissionApplicationStatus.UNDER_REVIEW]: [
+    {
+      key: 'request_documents',
+      title: 'Request supporting documents',
+      description: 'Reach out to the family for outstanding supporting documents.',
+      dueInDays: 3,
+    },
+  ],
+  [AdmissionApplicationStatus.OFFER_SENT]: [
+    {
+      key: 'offer_follow_up',
+      title: 'Follow up on offer decision',
+      description: 'Follow up with the family regarding the sent offer.',
+      dueInDays: 5,
+    },
+  ],
+  [AdmissionApplicationStatus.ACCEPTED]: [
+    {
+      key: 'collect_enrollment_paperwork',
+      title: 'Collect enrollment paperwork',
+      description: 'Collect the required enrollment paperwork from the family.',
+      dueInDays: 7,
+    },
+    {
+      key: 'schedule_onboarding_call',
+      title: 'Schedule onboarding call',
+      description: 'Schedule an onboarding call to welcome the family and outline next steps.',
+      dueInDays: 3,
+    },
+  ],
+} as const satisfies Partial<Record<AdmissionApplicationStatus, readonly ApplicationTaskTemplate[]>>;
+
+const APPLICATION_STATUS_CANCELS_TASKS = new Set<AdmissionApplicationStatus>([
+  AdmissionApplicationStatus.REJECTED,
+  AdmissionApplicationStatus.WITHDRAWN,
+  AdmissionApplicationStatus.ENROLLED,
+]);
+
 const ALLOWED_FILTER_KEYS = new Set<keyof Prisma.JsonObject | string>([
   'branchId',
   'branchIds',
@@ -124,9 +240,94 @@ const tasterInclude = {
 
 const ORG_LEVEL_ROLES = new Set<Role>([Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.OPERATIONS_MANAGER]);
 
+const STAGE_SEQUENCE: AdmissionLeadStage[] = [
+  AdmissionLeadStage.NEW,
+  AdmissionLeadStage.CONTACTED,
+  AdmissionLeadStage.TASTER_BOOKED,
+  AdmissionLeadStage.ATTENDED,
+  AdmissionLeadStage.OFFER,
+  AdmissionLeadStage.ACCEPTED,
+  AdmissionLeadStage.ENROLLED,
+  AdmissionLeadStage.ONBOARDED,
+];
+
+const STAGE_TIMESTAMP_KEYS = [
+  'newAt',
+  'contactedAt',
+  'tasterScheduledAt',
+  'tasterAttendedAt',
+  'appliedAt',
+  'enrolledAt',
+] as const;
+
+type StageTimestampKey = (typeof STAGE_TIMESTAMP_KEYS)[number];
+
+const STAGE_TIMESTAMP_FIELD_MAP: Partial<Record<AdmissionLeadStage, StageTimestampKey>> = {
+  [AdmissionLeadStage.NEW]: 'newAt',
+  [AdmissionLeadStage.CONTACTED]: 'contactedAt',
+  [AdmissionLeadStage.TASTER_BOOKED]: 'tasterScheduledAt',
+  [AdmissionLeadStage.ATTENDED]: 'tasterAttendedAt',
+  [AdmissionLeadStage.OFFER]: 'appliedAt',
+  [AdmissionLeadStage.ENROLLED]: 'enrolledAt',
+};
+
+const STAGE_TIMESTAMP_SELECT = {
+  id: true,
+  stage: true,
+  newAt: true,
+  contactedAt: true,
+  tasterScheduledAt: true,
+  tasterAttendedAt: true,
+  appliedAt: true,
+  enrolledAt: true,
+} as const;
+
+type StageTimestampRecord = Prisma.AdmissionLeadGetPayload<{ select: typeof STAGE_TIMESTAMP_SELECT }>;
+type StageTimestampSnapshot = Partial<Record<StageTimestampKey, Date | null | undefined>>;
+
+const getStageTimestampField = (stage: AdmissionLeadStage | null | undefined): StageTimestampKey | null => {
+  if (!stage) {
+    return null;
+  }
+  return STAGE_TIMESTAMP_FIELD_MAP[stage] ?? null;
+};
+
+const captureStageTimestamps = (record: StageTimestampRecord): StageTimestampSnapshot => {
+  const snapshot: StageTimestampSnapshot = {};
+
+  if (!record) {
+    return snapshot;
+  }
+
+  for (const key of STAGE_TIMESTAMP_KEYS) {
+    snapshot[key] = record[key] ?? null;
+  }
+
+  return snapshot;
+};
+
+const applyStageTimestampUpdate = (
+  current: StageTimestampSnapshot,
+  stage: AdmissionLeadStage,
+  data: Prisma.AdmissionLeadUpdateInput,
+  timestamp: Date,
+) => {
+  const field = getStageTimestampField(stage);
+
+  if (!field) {
+    return;
+  }
+
+  if (current[field] !== undefined && current[field] !== null) {
+    return;
+  }
+
+  Object.assign(data, { [field]: { set: timestamp } } as Prisma.AdmissionLeadUpdateInput);
+};
+
 @Injectable()
 export class AdmissionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly tasksService: AdmissionsTasksService) {}
 private toNullableJson(
   value: unknown
 ): Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined {
@@ -350,24 +551,38 @@ private toNullableJson(
       throw new ForbiddenException('Branch is required for this lead');
     }
 
+    const now = new Date();
+    const initialStageTimestampField = getStageTimestampField(AdmissionLeadStage.NEW);
+
+    const createData: Prisma.AdmissionLeadUncheckedCreateInput = {
+      branchId: branchId ?? null,
+      assignedStaffId: dto.assignedStaffId ?? null,
+      parentFirstName: dto.parentFirstName.trim(),
+      parentLastName: dto.parentLastName.trim(),
+      parentEmail: dto.parentEmail.toLowerCase(),
+      parentPhone: dto.parentPhone?.trim() ?? null,
+      studentFirstName: dto.studentFirstName?.trim() ?? null,
+      studentLastName: dto.studentLastName?.trim() ?? null,
+      studentDateOfBirth: dto.studentDateOfBirth ?? null,
+      programmeInterest: dto.programmeInterest?.trim() ?? null,
+      preferredContactAt: dto.preferredContactAt ?? null,
+      source: dto.source?.trim() ?? null,
+      notes: dto.notes?.trim() ?? null,
+      tags: dto.tags ?? [],
+      stage: AdmissionLeadStage.NEW,
+    };
+
+    const metadataValue = this.toNullableJson(dto.metadata);
+    if (metadataValue !== undefined) {
+      createData.metadata = metadataValue;
+    }
+
+    if (initialStageTimestampField) {
+      (createData as Record<string, unknown>)[initialStageTimestampField] = now;
+    }
+
     const lead = await this.prisma.admissionLead.create({
-      data: {
-        branchId,
-        assignedStaffId: dto.assignedStaffId ?? null,
-        parentFirstName: dto.parentFirstName.trim(),
-        parentLastName: dto.parentLastName.trim(),
-        parentEmail: dto.parentEmail.toLowerCase(),
-        parentPhone: dto.parentPhone?.trim() ?? null,
-        studentFirstName: dto.studentFirstName?.trim() ?? null,
-        studentLastName: dto.studentLastName?.trim() ?? null,
-        studentDateOfBirth: dto.studentDateOfBirth ?? null,
-        programmeInterest: dto.programmeInterest?.trim() ?? null,
-        preferredContactAt: dto.preferredContactAt ?? null,
-        source: dto.source?.trim() ?? null,
-        notes: dto.notes?.trim() ?? null,
-        tags: dto.tags ?? [],
-        metadata: this.toNullableJson(dto.metadata),
-      },
+      data: createData,
       include: leadInclude,
     });
 
@@ -472,6 +687,13 @@ private toNullableJson(
       );
     }
 
+    const timestampRecords = await this.prisma.admissionLead.findMany({
+      where: { id: { in: leadIds } },
+      select: STAGE_TIMESTAMP_SELECT,
+    });
+
+    const timestampLookup = new Map(timestampRecords.map((record) => [record.id, captureStageTimestamps(record)]));
+
     await this.prisma.$transaction(async (tx) => {
       for (const { leadId, context } of contexts) {
         if (context.stage === dto.toStage) {
@@ -479,8 +701,7 @@ private toNullableJson(
         }
 
         const stageUpdate: Prisma.AdmissionLeadUpdateInput = {
-          stage: dto.toStage,
-          updatedAt: new Date(),
+          stage: { set: dto.toStage },
         };
 
         if (typeof dto.assignedStaffId !== 'undefined') {
@@ -488,6 +709,10 @@ private toNullableJson(
             ? { connect: { id: dto.assignedStaffId } }
             : { disconnect: true };
         }
+
+        const snapshot = timestampLookup.get(leadId) ?? {};
+        const now = new Date();
+        applyStageTimestampUpdate(snapshot, dto.toStage, stageUpdate, now);
 
         await tx.admissionLead.update({
           where: { id: leadId },
@@ -501,6 +726,7 @@ private toNullableJson(
             toStage: dto.toStage,
             changedById: user.id ?? null,
             reason: dto.reason?.trim() ?? null,
+            changedAt: now,
           },
         });
       }
@@ -603,20 +829,41 @@ private toNullableJson(
     }
 
     if (lead.stage === targetStage) {
-      return lead;
+      return this.getLeadById(user, leadId);
     }
 
     if (!this.isValidStageTransition(lead.stage, targetStage)) {
       throw new BadRequestException('Invalid stage transition');
     }
 
+    const timestampRecord = await this.prisma.admissionLead.findUnique({
+      where: { id: leadId },
+      select: STAGE_TIMESTAMP_SELECT,
+    });
+
+    if (!timestampRecord) {
+      throw new NotFoundException('Lead not found');
+    }
+
+    const snapshot = captureStageTimestamps(timestampRecord);
+    const now = new Date();
+
     const updated = await this.prisma.$transaction(async (tx) => {
+      const data: Prisma.AdmissionLeadUpdateInput = {
+        stage: { set: targetStage },
+      };
+
+      applyStageTimestampUpdate(snapshot, targetStage, data, now);
+
+      if (typeof dto.assignedStaffId !== 'undefined') {
+        data.assignedStaff = dto.assignedStaffId
+          ? { connect: { id: dto.assignedStaffId } }
+          : { disconnect: true };
+      }
+
       const result = await tx.admissionLead.update({
         where: { id: leadId },
-        data: {
-          stage: targetStage,
-          assignedStaffId: typeof dto.assignedStaffId !== 'undefined' ? dto.assignedStaffId : lead.assignedStaffId,
-        },
+        data,
         include: leadInclude,
       });
 
@@ -627,6 +874,7 @@ private toNullableJson(
           toStage: targetStage,
           changedById: user.id ?? null,
           reason: dto.reason?.trim() ?? null,
+          changedAt: now,
         },
       });
 
@@ -806,21 +1054,71 @@ private toNullableJson(
   async createApplication(user: SessionUserData, dto: CreateApplicationDto) {
     await this.ensureLeadAccess(user, dto.leadId);
 
-    const application = await this.prisma.admissionApplication.create({
-      data: {
-        leadId: dto.leadId,
-        branchId: dto.branchId ?? null,
-        yearGroup: dto.yearGroup?.trim() ?? null,
-        requestedStart: dto.requestedStart ?? null,
-        status: dto.status ?? AdmissionApplicationStatus.DRAFT,
-        submittedAt: dto.submittedAt ?? null,
-        reviewedById: dto.reviewedById ?? null,
-        decision: dto.decision ?? null,
-        decisionNotes: dto.decisionNotes?.trim() ?? null,
-        decisionAt: dto.decisionAt ?? null,
-        extraData: this.toNullableJson(dto.extraData),
-      },
-      include: leadInclude,
+    const now = new Date();
+    const status = dto.status ?? AdmissionApplicationStatus.DRAFT;
+
+    const createData: Prisma.AdmissionApplicationUncheckedCreateInput = {
+      leadId: dto.leadId,
+      branchId: dto.branchId ?? null,
+      yearGroup: dto.yearGroup?.trim() ?? null,
+      requestedStart: dto.requestedStart ?? null,
+      status,
+      submittedAt: dto.submittedAt ?? null,
+      reviewStartedAt: dto.reviewStartedAt ?? null,
+      offerSentAt: dto.offerSentAt ?? null,
+      offerAcceptedAt: dto.offerAcceptedAt ?? null,
+      enrolledAt: dto.enrolledAt ?? null,
+      reviewedById: dto.reviewedById ?? null,
+      decision: dto.decision ?? null,
+      decisionNotes: dto.decisionNotes?.trim() ?? null,
+      decisionAt: dto.decisionAt ?? null,
+    };
+
+    const extraData = this.toNullableJson(dto.extraData);
+    if (extraData !== undefined) {
+      createData.extraData = extraData;
+    }
+
+    const timestampField = this.getStatusTimestampField(status);
+    if (timestampField && !(createData as Record<string, unknown>)[timestampField]) {
+      (createData as Record<string, unknown>)[timestampField] = now;
+    }
+
+    if (APPLICATION_DECISION_STATUSES.has(status) && !createData.decisionAt) {
+      createData.decisionAt = now;
+    }
+
+    const templates = this.getTaskTemplatesForStatus(status);
+    const cancelTasks = APPLICATION_STATUS_CANCELS_TASKS.has(status);
+
+    const application = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.admissionApplication.create({
+        data: createData,
+        include: applicationInclude,
+      });
+
+      if (cancelTasks) {
+        await this.tasksService.cancelOpenApplicationAutomationTasks(tx, created.id);
+      } else {
+        const branchId = created.branchId ?? created.lead?.branchId ?? null;
+        const defaultAssignee = created.reviewedById ?? created.lead?.assignedStaffId ?? null;
+
+        for (const template of templates) {
+          await this.tasksService.createApplicationAutomationTask(tx, {
+            automationKey: template.key,
+            leadId: created.leadId,
+            applicationId: created.id,
+            branchId,
+            assigneeId: defaultAssignee,
+            title: template.title,
+            description: template.description,
+            dueInDays: template.dueInDays,
+            now,
+          });
+        }
+      }
+
+      return created;
     });
 
     return application;
@@ -829,6 +1127,7 @@ private toNullableJson(
   async updateApplication(user: SessionUserData, applicationId: string, dto: UpdateApplicationDto) {
     const application = await this.prisma.admissionApplication.findUnique({
       where: { id: applicationId },
+      include: applicationInclude,
     });
 
     if (!application) {
@@ -838,6 +1137,7 @@ private toNullableJson(
     await this.ensureLeadAccess(user, application.leadId);
 
     const data: Prisma.AdmissionApplicationUpdateInput = {};
+    const now = new Date();
 
     if (typeof dto.branchId !== 'undefined') {
       data.branch = dto.branchId ? { connect: { id: dto.branchId } } : { disconnect: true };
@@ -848,12 +1148,35 @@ private toNullableJson(
     if (typeof dto.requestedStart !== 'undefined') {
       data.requestedStart = dto.requestedStart ?? null;
     }
-    if (typeof dto.status !== 'undefined') {
+
+    let statusChanged = false;
+    let targetStatus = application.status;
+    if (typeof dto.status !== 'undefined' && dto.status !== application.status) {
+      const allowed = APPLICATION_ALLOWED_TRANSITIONS[application.status] ?? [];
+      if (!allowed.includes(dto.status)) {
+        throw new BadRequestException('Invalid application status transition');
+      }
       data.status = dto.status;
+      targetStatus = dto.status;
+      statusChanged = true;
     }
+
     if (typeof dto.submittedAt !== 'undefined') {
       data.submittedAt = dto.submittedAt ?? null;
     }
+    if (typeof dto.reviewStartedAt !== 'undefined') {
+      data.reviewStartedAt = dto.reviewStartedAt ?? null;
+    }
+    if (typeof dto.offerSentAt !== 'undefined') {
+      data.offerSentAt = dto.offerSentAt ?? null;
+    }
+    if (typeof dto.offerAcceptedAt !== 'undefined') {
+      data.offerAcceptedAt = dto.offerAcceptedAt ?? null;
+    }
+    if (typeof dto.enrolledAt !== 'undefined') {
+      data.enrolledAt = dto.enrolledAt ?? null;
+    }
+
     if (typeof dto.reviewedById !== 'undefined') {
       data.reviewedBy = dto.reviewedById
         ? { connect: { id: dto.reviewedById } }
@@ -872,10 +1195,54 @@ private toNullableJson(
       data.extraData = this.toNullableJson(dto.extraData);
     }
 
-    const updated = await this.prisma.admissionApplication.update({
-      where: { id: applicationId },
-      data,
-      include: leadInclude,
+    if (statusChanged) {
+      const timestampField = this.getStatusTimestampField(targetStatus);
+      if (timestampField) {
+        const currentValue = (application as Record<string, unknown>)[timestampField] as Date | null | undefined;
+        const hasExplicitUpdate = Object.prototype.hasOwnProperty.call(data, timestampField);
+        if (!currentValue && !hasExplicitUpdate) {
+          (data as Record<string, unknown>)[timestampField] = now;
+        }
+      }
+
+      if (APPLICATION_DECISION_STATUSES.has(targetStatus) && !data.decisionAt && !application.decisionAt) {
+        data.decisionAt = now;
+      }
+    }
+
+    const templates = statusChanged ? this.getTaskTemplatesForStatus(targetStatus) : [];
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.admissionApplication.update({
+        where: { id: applicationId },
+        data,
+        include: applicationInclude,
+      });
+
+      if (statusChanged) {
+        await this.tasksService.cancelOpenApplicationAutomationTasks(tx, applicationId);
+
+        if (!APPLICATION_STATUS_CANCELS_TASKS.has(targetStatus)) {
+          const branchId = result.branchId ?? result.lead?.branchId ?? null;
+          const defaultAssignee = result.reviewedById ?? result.lead?.assignedStaffId ?? null;
+
+          for (const template of templates) {
+            await this.tasksService.createApplicationAutomationTask(tx, {
+              automationKey: template.key,
+              leadId: result.leadId,
+              applicationId: result.id,
+              branchId,
+              assigneeId: defaultAssignee,
+              title: template.title,
+              description: template.description,
+              dueInDays: template.dueInDays,
+              now,
+            });
+          }
+        }
+      }
+
+      return result;
     });
 
     return updated;
@@ -886,20 +1253,20 @@ private toNullableJson(
       throw new BadRequestException('Task must be associated with a lead or application');
     }
 
-    if (dto.leadId) {
-      await this.ensureLeadAccess(user, dto.leadId);
+    let leadId = dto.leadId ?? null;
+    if (!leadId && dto.applicationId) {
+      leadId = await this.findLeadIdForApplication(dto.applicationId);
     }
-    if (dto.applicationId) {
-      const application = await this.prisma.admissionApplication.findUnique({ where: { id: dto.applicationId } });
-      if (!application) {
-        throw new NotFoundException('Application not found');
-      }
-      await this.ensureLeadAccess(user, application.leadId);
+
+    if (!leadId) {
+      throw new BadRequestException('Task is not linked to a lead');
     }
+
+    await this.ensureLeadAccess(user, leadId);
 
     const task = await this.prisma.admissionTask.create({
       data: {
-        leadId: dto.leadId ?? null,
+        leadId,
         applicationId: dto.applicationId ?? null,
         title: dto.title.trim(),
         description: dto.description?.trim() ?? null,
@@ -911,7 +1278,7 @@ private toNullableJson(
       },
     });
 
-    return this.getLeadById(user, task.leadId ?? (await this.findLeadIdForApplication(task.applicationId!))!);
+    return this.getLeadById(user, leadId);
   }
 
   async updateTaskStatus(user: SessionUserData, taskId: string, dto: UpdateTaskStatusDto) {
@@ -920,7 +1287,8 @@ private toNullableJson(
       throw new NotFoundException('Task not found');
     }
 
-    const leadId = task.leadId ?? (await this.findLeadIdForApplication(task.applicationId!));
+    const leadId =
+      task.leadId ?? (task.applicationId ? await this.findLeadIdForApplication(task.applicationId) : null);
     if (!leadId) {
       throw new BadRequestException('Task is not linked to a lead');
     }
@@ -936,6 +1304,15 @@ private toNullableJson(
     });
 
     return this.getLeadById(user, leadId);
+  }
+
+  private getStatusTimestampField(status: AdmissionApplicationStatus) {
+    return APPLICATION_STATUS_TIMESTAMP_FIELDS[status as keyof typeof APPLICATION_STATUS_TIMESTAMP_FIELDS];
+  }
+
+  private getTaskTemplatesForStatus(status: AdmissionApplicationStatus): ApplicationTaskTemplate[] {
+    const templates = APPLICATION_STATUS_TASK_TEMPLATES[status as keyof typeof APPLICATION_STATUS_TASK_TEMPLATES];
+    return templates ? [...templates] : [];
   }
 
   private buildLeadWhere(user: SessionUserData, filters: ListLeadsDto): Prisma.AdmissionLeadWhereInput {
