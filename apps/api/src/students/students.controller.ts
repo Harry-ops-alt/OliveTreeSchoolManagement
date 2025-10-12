@@ -11,15 +11,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
-import { JwtAuthGuard } from '../auth/guards/jwt.guard.js';
-import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { Roles } from '../auth/decorators/roles.decorator.js';
-import { StudentsService } from './students.service.js';
-import { ListStudentsDto } from './dto/list-students.dto.js';
-import { CreateStudentDto } from './dto/create-student.dto.js';
-import { UpdateStudentDto } from './dto/update-student.dto.js';
-import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import type { SessionUserData } from '../users/users.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Capabilities } from '../auth/decorators/capabilities.decorator';
+import { SisCapability } from '../auth/roles.constants';
+import { StudentsService } from './students.service';
+import { ListStudentsDto } from './dto/list-students.dto';
+import { CreateStudentDto } from './dto/create-student.dto';
+import { UpdateStudentDto } from './dto/update-student.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { SessionUserData } from '../users/users.service';
 
 @Controller('students')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -34,6 +36,7 @@ export class StudentsController {
     Role.BRANCH_MANAGER,
     Role.ADMISSIONS_OFFICER,
   )
+  @Capabilities(SisCapability.ViewStudents)
   list(@CurrentUser() user: SessionUserData, @Query() filters: ListStudentsDto) {
     return this.studentsService.list(user, filters);
   }
@@ -47,18 +50,21 @@ export class StudentsController {
     Role.ADMISSIONS_OFFICER,
     Role.TEACHER,
   )
+  @Capabilities(SisCapability.ViewStudents)
   getById(@CurrentUser() user: SessionUserData, @Param('id', ParseUUIDPipe) id: string) {
     return this.studentsService.getById(user, id);
   }
 
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.BRANCH_MANAGER, Role.ADMISSIONS_OFFICER)
+  @Capabilities(SisCapability.ManageStudents)
   create(@CurrentUser() user: SessionUserData, @Body() payload: CreateStudentDto) {
     return this.studentsService.create(user, payload);
   }
 
   @Patch(':id')
   @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.BRANCH_MANAGER, Role.ADMISSIONS_OFFICER)
+  @Capabilities(SisCapability.ManageStudents)
   update(
     @CurrentUser() user: SessionUserData,
     @Param('id', ParseUUIDPipe) id: string,
@@ -69,6 +75,7 @@ export class StudentsController {
 
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.BRANCH_MANAGER, Role.ADMISSIONS_OFFICER)
+  @Capabilities(SisCapability.ManageStudents)
   archive(@CurrentUser() user: SessionUserData, @Param('id', ParseUUIDPipe) id: string) {
     return this.studentsService.archive(user, id);
   }

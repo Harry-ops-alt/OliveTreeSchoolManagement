@@ -7,6 +7,15 @@ export enum AdmissionsCapability {
   ManageApplications = 'admissions.manage_applications',
 }
 
+export enum SisCapability {
+  ViewBranches = 'sis.view_branches',
+  ManageBranches = 'sis.manage_branches',
+  ViewClassSchedules = 'sis.view_class_schedules',
+  ManageClassSchedules = 'sis.manage_class_schedules',
+  ViewStudents = 'sis.view_students',
+  ManageStudents = 'sis.manage_students',
+}
+
 export type Capability =
   | 'platform:tenancy'
   | 'platform:settings'
@@ -14,6 +23,12 @@ export type Capability =
   | AdmissionsCapability.ViewLeads
   | AdmissionsCapability.ManageTasters
   | AdmissionsCapability.ManageApplications
+  | SisCapability.ViewBranches
+  | SisCapability.ManageBranches
+  | SisCapability.ViewClassSchedules
+  | SisCapability.ManageClassSchedules
+  | SisCapability.ViewStudents
+  | SisCapability.ManageStudents
   | 'operations:branches'
   | 'operations:rostering'
   | 'operations:attendance'
@@ -35,6 +50,12 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     AdmissionsCapability.ViewLeads,
     AdmissionsCapability.ManageTasters,
     AdmissionsCapability.ManageApplications,
+    SisCapability.ViewBranches,
+    SisCapability.ManageBranches,
+    SisCapability.ViewClassSchedules,
+    SisCapability.ManageClassSchedules,
+    SisCapability.ViewStudents,
+    SisCapability.ManageStudents,
     'operations:branches',
     'operations:rostering',
     'operations:attendance',
@@ -54,18 +75,29 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     AdmissionsCapability.ViewLeads,
     AdmissionsCapability.ManageTasters,
     AdmissionsCapability.ManageApplications,
+    SisCapability.ViewBranches,
+    SisCapability.ManageBranches,
+    SisCapability.ViewClassSchedules,
+    SisCapability.ManageClassSchedules,
+    SisCapability.ViewStudents,
+    SisCapability.ManageStudents,
     'operations:branches',
     'operations:rostering',
     'operations:attendance',
     'finance:view',
     'communications:send',
     'analytics:view',
-    'tasks:manage',
     'tasks:view',
   ],
   OPERATIONS_MANAGER: [
     AdmissionsCapability.ViewLeads,
     AdmissionsCapability.ManageTasters,
+    SisCapability.ViewBranches,
+    SisCapability.ManageBranches,
+    SisCapability.ViewClassSchedules,
+    SisCapability.ManageClassSchedules,
+    SisCapability.ViewStudents,
+    SisCapability.ManageStudents,
     'operations:branches',
     'operations:rostering',
     'operations:attendance',
@@ -78,6 +110,12 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     AdmissionsCapability.ViewLeads,
     AdmissionsCapability.ManageTasters,
     AdmissionsCapability.ManageApplications,
+    SisCapability.ViewBranches,
+    SisCapability.ManageBranches,
+    SisCapability.ViewClassSchedules,
+    SisCapability.ManageClassSchedules,
+    SisCapability.ViewStudents,
+    SisCapability.ManageStudents,
     'operations:rostering',
     'operations:attendance',
     'communications:send',
@@ -89,6 +127,8 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     AdmissionsCapability.ViewLeads,
     AdmissionsCapability.ManageTasters,
     AdmissionsCapability.ManageApplications,
+    SisCapability.ViewStudents,
+    SisCapability.ManageStudents,
     'communications:send',
     'analytics:view',
     'tasks:view',
@@ -109,11 +149,14 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     'operations:attendance',
     'lms:teaching',
     'communications:send',
+    SisCapability.ViewClassSchedules,
+    SisCapability.ViewStudents,
     'tasks:view',
   ],
   TEACHING_ASSISTANT: [
     'operations:attendance',
     'lms:teaching',
+    SisCapability.ViewClassSchedules,
     'tasks:view',
   ],
   TRAINER: [
@@ -122,7 +165,7 @@ export const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     'tasks:manage',
   ],
   TRAINEE: ['lms:training', 'tasks:view'],
-  SUPPORT_STAFF: ['operations:attendance', 'tasks:view'],
+  SUPPORT_STAFF: ['operations:attendance', SisCapability.ViewClassSchedules, 'tasks:view'],
   PARENT_GUARDIAN: ['payments:process', 'tasks:view'],
   STUDENT: ['lms:teaching', 'tasks:view'],
 };
