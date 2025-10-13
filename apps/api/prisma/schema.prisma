@@ -54,6 +54,46 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum BillingCycle {
+  MONTHLY
+  TERMLY
+  QUARTERLY
+  ANNUAL
+  ONE_TIME
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  COMPLETED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CHEQUE
+  CARD_MANUAL
+  STRIPE
+}
+
+enum DiscountType {
+  SIBLING
+  BURSARY
+  SCHOLARSHIP
+  PROMOTIONAL
+  EARLY_BIRD
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -137,13 +177,15 @@ enum FinanceTransactionType {
 }
 
 model Organization {
-  id        String     @id @default(uuid())
-  name      String     @unique
-  branches  Branch[]
-  users     User[]
-  guardians Guardian[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id            String         @id @default(uuid())
+  name          String         @unique
+  branches      Branch[]
+  users         User[]
+  guardians     Guardian[]
+  feeStructures FeeStructure[]
+  discounts     Discount[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Branch {
@@ -174,8 +216,11 @@ model Branch {
   admissionLeads        AdmissionLead[]
   admissionTasters      AdmissionTasterSession[]
   admissionApplications AdmissionApplication[]
-  createdAt            DateTime                      @default(now())
-  updatedAt            DateTime                      @updatedAt
+  feeStructures         FeeStructure[]
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  @@index([organizationId])
 }
 
 model User {
@@ -203,8 +248,13 @@ model User {
   admissionTasksAssigned        AdmissionTask[]             @relation("AdmissionTaskAssignee")
   admissionTasksCreated         AdmissionTask[]             @relation("AdmissionTaskCreator")
   savedLeadViews                AdmissionLead[]             @relation("AdmissionLeadSavedBy")
+  invoicesAsParent              Invoice[]                   @relation("ParentInvoices")
+  paymentsRecorded              Payment[]                   @relation("PaymentsRecorded")
   createdAt                     DateTime                    @default(now())
   updatedAt                     DateTime                    @updatedAt
+
+  @@index([organizationId])
+  @@index([branchId])
 }
 
 model StudentProfile {
@@ -242,6 +292,8 @@ model StudentProfile {
   guardians              StudentGuardian[]
   attendanceRecords      AttendanceRecord[]
   classEnrollments       StudentClassEnrollment[]
+  subscriptions          Subscription[]
+  invoices               Invoice[]
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
 
@@ -373,8 +425,9 @@ model Class {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  branch       Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  classroom    Classroom? @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  branch        Branch         @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  classroom     Classroom?     @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  feeStructures FeeStructure[]
 
   @@index([branchId])
   @@index([classroomId])
@@ -697,4 +750,140 @@ model AttendanceRecord {
   @@unique([sessionId, studentId])
   @@index([studentId])
   @@index([recordedById])
+}
+
+model FeeStructure {
+  id             String        @id @default(uuid())
+  organizationId String
+  branchId       String?
+  classId        String?
+  name           String
+  description    String?
+  amount         Decimal       @db.Decimal(10, 2)
+  currency       String        @default("GBP")
+  billingCycle   BillingCycle
+  yearGroup      String?
+  active         Boolean       @default(true)
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch         Branch?       @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  class          Class?        @relation(fields: [classId], references: [id], onDelete: SetNull)
+  subscriptions  Subscription[]
+
+  @@index([organizationId])
+  @@index([branchId])
+  @@index([classId])
+  @@index([active])
+}
+
+model Subscription {
+  id               String             @id @default(uuid())
+  studentId        String
+  feeStructureId   String
+  startDate        DateTime
+  endDate          DateTime?
+  status           SubscriptionStatus @default(ACTIVE)
+  amount           Decimal            @db.Decimal(10, 2)
+  discountAmount   Decimal            @default(0) @db.Decimal(10, 2)
+  discountReason   String?
+  billingCycle     BillingCycle
+  nextBillingDate  DateTime?
+  metadata         Json?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  student          StudentProfile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  feeStructure     FeeStructure       @relation(fields: [feeStructureId], references: [id], onDelete: Restrict)
+  invoices         Invoice[]
+
+  @@index([studentId])
+  @@index([feeStructureId])
+  @@index([status])
+  @@index([nextBillingDate])
+}
+
+model Discount {
+  id             String       @id @default(uuid())
+  organizationId String
+  code           String?      @unique
+  name           String
+  type           DiscountType
+  percentage     Decimal?     @db.Decimal(5, 2)
+  fixedAmount    Decimal?     @db.Decimal(10, 2)
+  criteria       Json?
+  active         Boolean      @default(true)
+  validFrom      DateTime?
+  validTo        DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([code])
+  @@index([active])
+}
+
+model Invoice {
+  id             String        @id @default(uuid())
+  subscriptionId String?
+  studentId      String
+  parentId       String?
+  invoiceNumber  String        @unique
+  issueDate      DateTime      @default(now())
+  dueDate        DateTime
+  amount         Decimal       @db.Decimal(10, 2)
+  paidAmount     Decimal       @default(0) @db.Decimal(10, 2)
+  status         InvoiceStatus @default(DRAFT)
+  currency       String        @default("GBP")
+  lineItems      Json
+  notes          String?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  parent         User?         @relation("ParentInvoices", fields: [parentId], references: [id], onDelete: SetNull)
+  payments       Payment[]
+  paymentPlan    PaymentPlan?
+
+  @@index([subscriptionId])
+  @@index([studentId])
+  @@index([parentId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([invoiceNumber])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  invoiceId     String
+  amount        Decimal       @db.Decimal(10, 2)
+  paymentDate   DateTime
+  paymentMethod PaymentMethod
+  reference     String?
+  notes         String?
+  recordedById  String
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  invoice       Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  recordedBy    User          @relation("PaymentsRecorded", fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@index([recordedById])
+  @@index([paymentDate])
+}
+
+model PaymentPlan {
+  id           String   @id @default(uuid())
+  invoiceId    String   @unique
+  totalAmount  Decimal  @db.Decimal(10, 2)
+  installments Json
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
 }

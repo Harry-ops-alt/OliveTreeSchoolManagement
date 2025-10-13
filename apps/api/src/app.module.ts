@@ -16,6 +16,7 @@ import { ClassesModule } from './classes/classes.module';
 import { StudentsModule } from './students/students.module';
 import { AdmissionsModule } from './admissions/admissions.module';
 import { TeachersModule } from './teachers/teachers.module';
+import { FeeStructuresModule } from './fee-structures/fee-structures.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { TeachersModule } from './teachers/teachers.module';
     ClassesModule,
     StudentsModule,
     TeachersModule,
+    FeeStructuresModule,
     AdmissionsModule,
   ],
   controllers: [AppController, HealthController],
