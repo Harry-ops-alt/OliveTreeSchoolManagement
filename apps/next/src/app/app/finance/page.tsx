@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { DollarSign, FileText, CreditCard, Receipt } from 'lucide-react';
 import { apiFetch } from '../../../lib/api-client';
 
 type FinanceItem = {
@@ -17,6 +19,27 @@ async function getFinance(): Promise<FinanceItem[]> {
 
   return (await response.json()) as FinanceItem[];
 }
+
+const financeModules = [
+  {
+    name: 'Fee Structures',
+    description: 'Manage tuition fees and billing cycles',
+    href: '/app/finance/fee-structures',
+    icon: DollarSign,
+  },
+  {
+    name: 'Subscriptions',
+    description: 'Student fee subscriptions and enrollments',
+    href: '/app/finance/subscriptions',
+    icon: Receipt,
+  },
+  {
+    name: 'Invoices & Payments',
+    description: 'Track invoices and record payments',
+    href: '/app/finance/invoices',
+    icon: FileText,
+  },
+];
 
 function toTitle(value: string): string {
   return value
@@ -55,9 +78,41 @@ export default async function FinancePage() {
       <div className="mx-auto max-w-5xl px-6 py-12 space-y-8">
         <header className="space-y-2">
           <p className="text-xs uppercase tracking-wide text-emerald-300/80">Finance</p>
-          <h1 className="text-3xl font-semibold text-white">Recent transactions</h1>
+          <h1 className="text-3xl font-semibold text-white">Finance & Billing</h1>
           <p className="text-sm text-emerald-100/70">
-            Monitor invoices, payments, refunds, and expenses captured by the Nest API seed.
+            Manage fee structures, subscriptions, invoices, and payments
+          </p>
+        </header>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {financeModules.map((module) => {
+            const Icon = module.icon;
+            return (
+              <Link
+                key={module.href}
+                href={module.href}
+                className="group rounded-2xl border border-emerald-500/40 bg-emerald-900/60 p-6 transition-all hover:border-emerald-400/60 hover:bg-emerald-900/80"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="rounded-lg bg-emerald-800/60 p-3">
+                    <Icon className="h-6 w-6 text-emerald-200" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-white group-hover:text-emerald-100">
+                      {module.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-emerald-100/70">{module.description}</p>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        <header className="space-y-2 pt-8">
+          <h2 className="text-2xl font-semibold text-white">Recent Transactions</h2>
+          <p className="text-sm text-emerald-100/70">
+            Monitor invoices, payments, refunds, and expenses
           </p>
         </header>
 
