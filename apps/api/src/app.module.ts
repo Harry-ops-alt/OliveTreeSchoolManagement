@@ -18,6 +18,10 @@ import { AdmissionsModule } from './admissions/admissions.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { FeeStructuresModule } from './fee-structures/fee-structures.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { InvoicesModule } from './invoices/invoices.module';
+import { PaymentsModule } from './payments/payments.module';
+import { DiscountsModule } from './discounts/discounts.module';
+import { PaymentPlansModule } from './payment-plans/payment-plans.module';
 
 @Module({
   imports: [
@@ -38,6 +42,10 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     TeachersModule,
     FeeStructuresModule,
     SubscriptionsModule,
+    InvoicesModule,
+    PaymentsModule,
+    DiscountsModule,
+    PaymentPlansModule,
     AdmissionsModule,
   ],
   controllers: [AppController, HealthController],
