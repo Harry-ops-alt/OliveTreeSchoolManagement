@@ -1,11 +1,17 @@
-export default function StaffPage() {
-  return (
-    <div className="px-6 py-10">
-      <h1 className="text-2xl font-semibold text-white">Teachers & Staff</h1>
-      <p className="mt-3 max-w-xl text-sm text-emerald-100/70">
-        Staffing insights, availability, and assignments will be managed here in Phase 2. Expect
-        roster metrics and HR integrations once development reaches this stage.
-      </p>
-    </div>
-  );
+import { getSession } from '../../../lib/session';
+import { redirect } from 'next/navigation';
+import { StaffClient } from './staff-client';
+
+export default async function StaffPage(): Promise<JSX.Element> {
+  const session = await getSession();
+
+  if (!session) {
+    redirect('/login');
+  }
+
+  if (!session.orgId) {
+    redirect('/app');
+  }
+
+  return <StaffClient orgId={session.orgId} defaultBranchId={session.branchId ?? undefined} />;
 }

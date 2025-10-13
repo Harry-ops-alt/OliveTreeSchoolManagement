@@ -323,12 +323,18 @@ async function main() {
     where: { userId: teacherUser.id },
     update: {
       branchId: branch.id,
-      subjects: ["Mathematics", "Science"],
+      subjects: ["Mathematics", "Physics"],
+      hireDate: new Date("2024-01-15"),
     },
     create: {
-      userId: teacherUser.id,
-      branchId: branch.id,
-      subjects: ["Mathematics", "Science"],
+      user: {
+        connect: { id: teacherUser.id },
+      },
+      branch: {
+        connect: { id: branch.id },
+      },
+      subjects: ["Mathematics", "Physics"],
+      hireDate: new Date("2024-01-15"),
     },
   });
 
@@ -350,6 +356,25 @@ async function main() {
       branch: {
         connect: { id: branch.id },
       },
+    },
+  });
+
+  const teacherProfile2 = await prisma.teacherProfile.upsert({
+    where: { userId: teachingAssistant.id },
+    update: {
+      branchId: branch.id,
+      subjects: ["English", "Literature"],
+      hireDate: new Date("2024-02-01"),
+    },
+    create: {
+      user: {
+        connect: { id: teachingAssistant.id },
+      },
+      branch: {
+        connect: { id: branch.id },
+      },
+      subjects: ["English", "Literature"],
+      hireDate: new Date("2024-02-01"),
     },
   });
 
@@ -1521,6 +1546,7 @@ async function main() {
   console.log("Seeded branch:", branch.name);
   console.log("Seeded teacher:", teacherUser.email);
   console.log("Seeded teaching assistant:", teachingAssistant.email);
+  console.log("Seeded teacher profiles:", [teacherProfile.id, teacherProfile2.id]);
   console.log("Seeded trainer/trainee:", [trainer.email, trainee.email]);
   console.log("Seeded support staff:", supportStaff.email);
   console.log("Seeded parent guardian:", parentGuardian.email);

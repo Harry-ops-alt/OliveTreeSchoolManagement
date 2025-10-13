@@ -15,6 +15,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { ClassesModule } from './classes/classes.module';
 import { StudentsModule } from './students/students.module';
 import { AdmissionsModule } from './admissions/admissions.module';
+import { TeachersModule } from './teachers/teachers.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AdmissionsModule } from './admissions/admissions.module';
     AttendanceModule,
     ClassesModule,
     StudentsModule,
+    TeachersModule,
     AdmissionsModule,
   ],
   controllers: [AppController, HealthController],
