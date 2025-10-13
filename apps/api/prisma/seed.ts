@@ -1560,6 +1560,211 @@ async function main() {
     "Seeded finance transactions:",
     financeTransactions.map((transaction) => transaction.reference),
   );
+
+  // Seed Fee Structures
+  const monthlyTuitionFee = await prisma.feeStructure.upsert({
+    where: { id: 'fee-monthly-tuition' },
+    update: {},
+    create: {
+      id: 'fee-monthly-tuition',
+      organizationId: organization.id,
+      branchId: branch.id,
+      name: 'Monthly Tuition',
+      description: 'Standard monthly tuition fee',
+      amount: 500,
+      currency: 'GBP',
+      billingCycle: 'MONTHLY',
+      yearGroup: 'Year 6',
+      active: true,
+    },
+  });
+
+  const termlyEnrichment = await prisma.feeStructure.upsert({
+    where: { id: 'fee-termly-enrichment' },
+    update: {},
+    create: {
+      id: 'fee-termly-enrichment',
+      organizationId: organization.id,
+      branchId: branch.id,
+      name: 'Termly Enrichment Programme',
+      description: 'After-school enrichment activities',
+      amount: 300,
+      currency: 'GBP',
+      billingCycle: 'TERMLY',
+      active: true,
+    },
+  });
+
+  const annualRegistration = await prisma.feeStructure.upsert({
+    where: { id: 'fee-annual-registration' },
+    update: {},
+    create: {
+      id: 'fee-annual-registration',
+      organizationId: organization.id,
+      name: 'Annual Registration Fee',
+      description: 'One-time annual registration',
+      amount: 150,
+      currency: 'GBP',
+      billingCycle: 'ANNUAL',
+      active: true,
+    },
+  });
+
+  // Seed Subscriptions (for first 2 students)
+  const subscription1 = await prisma.subscription.upsert({
+    where: { id: 'sub-student-1' },
+    update: {},
+    create: {
+      id: 'sub-student-1',
+      student: { connect: { id: studentProfiles[0].profileId } },
+      feeStructure: { connect: { id: monthlyTuitionFee.id } },
+      startDate: new Date('2025-01-01'),
+      amount: 500,
+      discountAmount: 0,
+      billingCycle: 'MONTHLY',
+      nextBillingDate: new Date('2025-02-01'),
+      status: 'ACTIVE',
+    },
+  });
+
+  const subscription2 = await prisma.subscription.upsert({
+    where: { id: 'sub-student-2' },
+    update: {},
+    create: {
+      id: 'sub-student-2',
+      student: { connect: { id: studentProfiles[1].profileId } },
+      feeStructure: { connect: { id: monthlyTuitionFee.id } },
+      startDate: new Date('2025-01-01'),
+      amount: 450,
+      discountAmount: 50,
+      discountReason: '10% sibling discount (1 sibling)',
+      billingCycle: 'MONTHLY',
+      nextBillingDate: new Date('2025-02-01'),
+      status: 'ACTIVE',
+    },
+  });
+
+  // Seed Invoices
+  const invoice1 = await prisma.invoice.upsert({
+    where: { id: 'inv-2025-0001' },
+    update: {},
+    create: {
+      id: 'inv-2025-0001',
+      subscription: { connect: { id: subscription1.id } },
+      student: { connect: { id: studentProfiles[0].profileId } },
+      invoiceNumber: 'INV-2025-0001',
+      issueDate: new Date('2025-01-01'),
+      dueDate: new Date('2025-01-15'),
+      amount: 500,
+      paidAmount: 500,
+      status: 'PAID',
+      currency: 'GBP',
+      lineItems: [
+        {
+          description: 'Monthly Tuition (Jan 2025)',
+          amount: 500,
+          quantity: 1,
+        },
+      ],
+    },
+  });
+
+  const invoice2 = await prisma.invoice.upsert({
+    where: { id: 'inv-2025-0002' },
+    update: {},
+    create: {
+      id: 'inv-2025-0002',
+      subscription: { connect: { id: subscription2.id } },
+      student: { connect: { id: studentProfiles[1].profileId } },
+      invoiceNumber: 'INV-2025-0002',
+      issueDate: new Date('2025-01-01'),
+      dueDate: new Date('2025-01-15'),
+      amount: 450,
+      paidAmount: 200,
+      status: 'PARTIALLY_PAID',
+      currency: 'GBP',
+      lineItems: [
+        {
+          description: 'Monthly Tuition (Jan 2025) - with sibling discount',
+          amount: 450,
+          quantity: 1,
+        },
+      ],
+    },
+  });
+
+  const invoice3 = await prisma.invoice.upsert({
+    where: { id: 'inv-2025-0003' },
+    update: {},
+    create: {
+      id: 'inv-2025-0003',
+      student: { connect: { id: studentProfiles[2].profileId } },
+      invoiceNumber: 'INV-2025-0003',
+      issueDate: new Date('2024-12-01'),
+      dueDate: new Date('2024-12-15'),
+      amount: 150,
+      paidAmount: 0,
+      status: 'OVERDUE',
+      currency: 'GBP',
+      lineItems: [
+        {
+          description: 'Annual Registration Fee',
+          amount: 150,
+          quantity: 1,
+        },
+      ],
+    },
+  });
+
+  // Seed Payments
+  const payment1 = await prisma.payment.upsert({
+    where: { id: 'pay-001' },
+    update: {},
+    create: {
+      id: 'pay-001',
+      invoice: { connect: { id: invoice1.id } },
+      amount: 500,
+      paymentDate: new Date('2025-01-10'),
+      paymentMethod: 'BANK_TRANSFER',
+      reference: 'TRF-20250110-001',
+      recordedBy: { connect: { id: financeOfficer.id } },
+    },
+  });
+
+  const payment2 = await prisma.payment.upsert({
+    where: { id: 'pay-002' },
+    update: {},
+    create: {
+      id: 'pay-002',
+      invoice: { connect: { id: invoice2.id } },
+      amount: 200,
+      paymentDate: new Date('2025-01-12'),
+      paymentMethod: 'CASH',
+      reference: 'CASH-20250112-001',
+      recordedBy: { connect: { id: financeOfficer.id } },
+    },
+  });
+
+  // Seed Discount
+  const siblingDiscount = await prisma.discount.upsert({
+    where: { id: 'discount-sibling' },
+    update: {},
+    create: {
+      id: 'discount-sibling',
+      organizationId: organization.id,
+      code: 'SIBLING10',
+      name: 'Sibling Discount',
+      type: 'SIBLING',
+      percentage: 10,
+      active: true,
+    },
+  });
+
+  console.log("Seeded fee structures:", [monthlyTuitionFee.name, termlyEnrichment.name, annualRegistration.name]);
+  console.log("Seeded subscriptions:", [subscription1.id, subscription2.id]);
+  console.log("Seeded invoices:", [invoice1.invoiceNumber, invoice2.invoiceNumber, invoice3.invoiceNumber]);
+  console.log("Seeded payments:", [payment1.id, payment2.id]);
+  console.log("Seeded discounts:", [siblingDiscount.code]);
 }
 
 main()
