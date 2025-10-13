@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateApplicationDto } from './create-application.dto.js';
+import { CreateApplicationDto } from './create-application.dto';
 import { Type } from 'class-transformer';
 import { IsDate, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import {
@@ -46,4 +46,24 @@ export class UpdateApplicationDto extends PartialType(CreateApplicationDto) {
   @Type(() => Date)
   @IsDate()
   decisionAt?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  reviewStartedAt?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  offerSentAt?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  offerAcceptedAt?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  enrolledAt?: Date;
 }

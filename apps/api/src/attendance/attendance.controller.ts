@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
-import { AttendanceService } from './attendance.service.js';
-import { JwtAuthGuard } from '../auth/guards/jwt.guard.js';
-import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { Capabilities } from '../auth/decorators/capabilities.decorator.js';
-import { CreateAttendanceSessionDto } from './dto/create-attendance-session.dto.js';
-import { SubmitAttendanceRecordsDto } from './dto/submit-attendance-records.dto.js';
-import { ListAttendanceSessionsDto } from './dto/list-attendance-sessions.dto.js';
-import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
-import type { SessionUserData } from '../users/users.service.js';
+import { AttendanceService } from './attendance.service';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Capabilities } from '../auth/decorators/capabilities.decorator';
+import { CreateAttendanceSessionDto } from './dto/create-attendance-session.dto';
+import { SubmitAttendanceRecordsDto } from './dto/submit-attendance-records.dto';
+import { ListAttendanceSessionsDto } from './dto/list-attendance-sessions.dto';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { SessionUserData } from '../users/users.service';
 
 @Controller('attendance')
 @UseGuards(JwtAuthGuard, RolesGuard)

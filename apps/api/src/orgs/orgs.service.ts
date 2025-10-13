@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrganizationDto } from './dto/create-organization.dto.js';
-import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
-import { CreateBranchDto } from './dto/create-branch.dto.js';
+import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { CreateBranchDto } from './dto/create-branch.dto';
 
 export type OrganizationWithBranches = Prisma.OrganizationGetPayload<{
   include: { branches: true };

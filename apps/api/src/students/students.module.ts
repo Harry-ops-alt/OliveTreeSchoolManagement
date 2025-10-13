@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from '../auth/auth.module.js';
-import { PrismaModule } from '../prisma/prisma.module.js';
-import { StudentsController } from './students.controller.js';
-import { StudentsService } from './students.service.js';
+import { AuthModule } from '../auth/auth.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { StudentsController } from './students.controller';
+import { StudentsService } from './students.service';
 
 @Module({
   imports: [PrismaModule, AuthModule],

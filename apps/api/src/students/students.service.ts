@@ -4,25 +4,25 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import type { SessionUserData } from '../users/users.service.js';
+import { PrismaService } from '../prisma/prisma.service';
+import type { SessionUserData } from '../users/users.service';
 import {
   DEFAULT_STUDENT_PAGE_SIZE,
   MAX_STUDENT_PAGE_SIZE,
   GenderValue,
   StudentStatusValue,
-} from './students.constants.js';
-import { ListStudentsDto } from './dto/list-students.dto.js';
+} from './students.constants';
+import { ListStudentsDto } from './dto/list-students.dto';
 import {
   CreateStudentDto,
   GuardianLinkDto,
   InlineGuardianDto,
-} from './dto/create-student.dto.js';
+} from './dto/create-student.dto';
 import {
   UpdateStudentDto,
   UpdateGuardianLinkDto,
   UpdateInlineGuardianDto,
-} from './dto/update-student.dto.js';
+} from './dto/update-student.dto';
 
 const studentInclude = {
   user: {

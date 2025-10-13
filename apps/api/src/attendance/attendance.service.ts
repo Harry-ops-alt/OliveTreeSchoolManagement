@@ -8,11 +8,11 @@ import {
   AttendanceStatus,
   Prisma,
 } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service.js';
-import type { SessionUserData } from '../users/users.service.js';
-import { CreateAttendanceSessionDto } from './dto/create-attendance-session.dto.js';
-import { SubmitAttendanceRecordsDto } from './dto/submit-attendance-records.dto.js';
-import { ListAttendanceSessionsDto } from './dto/list-attendance-sessions.dto.js';
+import { PrismaService } from '../prisma/prisma.service';
+import type { SessionUserData } from '../users/users.service';
+import { CreateAttendanceSessionDto } from './dto/create-attendance-session.dto';
+import { SubmitAttendanceRecordsDto } from './dto/submit-attendance-records.dto';
+import { ListAttendanceSessionsDto } from './dto/list-attendance-sessions.dto';
 
 @Injectable()
 export class AttendanceService {

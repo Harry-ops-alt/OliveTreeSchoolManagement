@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AttendanceController } from './attendance.controller.js';
-import { AttendanceService } from './attendance.service.js';
-import { AttendanceGenerationService } from './attendance-generation.service.js';
-import { PrismaModule } from '../prisma/prisma.module.js';
+import { AttendanceController } from './attendance.controller';
+import { AttendanceService } from './attendance.service';
+import { AttendanceGenerationService } from './attendance-generation.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],

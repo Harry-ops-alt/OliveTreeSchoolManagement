@@ -6,10 +6,10 @@ import {
   StaffAssignmentRole,
   TeacherProfile,
 } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateClassScheduleDto, StaffAssignmentInput } from './dto/create-class-schedule.dto.js';
-import { UpdateClassScheduleDto } from './dto/update-class-schedule.dto.js';
-import { ClassScheduleClashDetails } from './interfaces/clash-details.interface.js';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateClassScheduleDto, StaffAssignmentInput } from './dto/create-class-schedule.dto';
+import { UpdateClassScheduleDto } from './dto/update-class-schedule.dto';
+import { ClassScheduleClashDetails } from './interfaces/clash-details.interface';
 
 type ClassScheduleWithRelations = ClassSchedule & {
   classroom: { id: string; name: string } | null;

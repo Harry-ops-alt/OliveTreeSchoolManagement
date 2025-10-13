@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateTasterSessionDto } from './create-taster-session.dto.js';
+import { CreateTasterSessionDto } from './create-taster-session.dto';
 import { Type } from 'class-transformer';
 import { IsDate, IsInt, IsOptional, IsUUID, Min } from 'class-validator';
 

@@ -82,6 +82,7 @@ function mapScheduleToFormValues(schedule: ClassSchedule): ClassScheduleFormValu
 
 interface BranchesSettingsClientProps {
   defaultBranchId?: string;
+  showSettingsTag?: boolean;
 }
 
 type BranchModalMode = 'create' | 'edit';
@@ -111,7 +112,7 @@ type ClassesState =
       data: ClassSchedule[];
     };
 
-export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClientProps): JSX.Element {
+export function BranchesSettingsClient({ defaultBranchId, showSettingsTag = true }: BranchesSettingsClientProps): JSX.Element {
   const { success: showSuccessToast, error: showErrorToast } = useToastHelpers();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(defaultBranchId ?? null);
@@ -277,7 +278,7 @@ export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClie
         showErrorToast('Unable to delete branch. Please try again.');
       }
     },
-    [refreshBranches, selectedBranch, showErrorToast, showSuccessToast],
+    [refreshBranches, selectedBranch, selectedBranchId, showErrorToast, showSuccessToast],
   );
 
   const handleDeleteSchedule = useCallback(
@@ -371,7 +372,11 @@ export function BranchesSettingsClient({ defaultBranchId }: BranchesSettingsClie
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-6 py-10">
       <header className="space-y-2">
-        <p className="text-xs uppercase tracking-wide text-emerald-300/80">Settings</p>
+        {showSettingsTag ? (
+          <p className="text-xs uppercase tracking-wide text-emerald-300/80">Settings</p>
+        ) : (
+          <p className="text-xs uppercase tracking-wide text-emerald-300/80">School Information</p>
+        )}
         <h1 className="text-3xl font-semibold text-white">Branches & Rooms</h1>
         <p className="max-w-2xl text-sm text-emerald-100/70">
           Manage branch locations, contact details, and classroom capacity to power rostering, attendance, and

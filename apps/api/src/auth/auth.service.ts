@@ -6,9 +6,9 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { verify } from 'argon2';
-import { UsersService } from '../users/users.service.js';
-import type { SessionUserData } from '../users/users.service.js';
-import type { AuthResponse, AuthTokenPayload } from './auth.types.js';
+import { UsersService } from '../users/users.service';
+import type { SessionUserData } from '../users/users.service';
+import type { AuthResponse, AuthTokenPayload } from './auth.types';
 
 @Injectable()
 export class AuthService {

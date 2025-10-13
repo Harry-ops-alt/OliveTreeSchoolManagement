@@ -6,13 +6,13 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { User } from '@prisma/client';
-import { REQUEST_USER_KEY } from '../auth.constants.js';
-import { ROLES_KEY } from '../decorators/roles.decorator.js';
+import { REQUEST_USER_KEY } from '../auth.constants';
+import { ROLES_KEY } from '../decorators/roles.decorator';
 import {
   hasAnyCapability,
   Capability,
-} from '../roles.constants.js';
-import { CAPABILITIES_KEY } from '../decorators/capabilities.decorator.js';
+} from '../roles.constants';
+import { CAPABILITIES_KEY } from '../decorators/capabilities.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {

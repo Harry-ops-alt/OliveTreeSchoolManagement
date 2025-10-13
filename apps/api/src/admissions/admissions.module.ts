@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from '../auth/auth.module.js';
-import { PrismaModule } from '../prisma/prisma.module.js';
-import { AdmissionsService } from './admissions.service.js';
-import { AdmissionsController } from './admissions.controller.js';
+import { AuthModule } from '../auth/auth.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AdmissionsService } from './admissions.service';
+import { AdmissionsController } from './admissions.controller';
+import { AdmissionsScheduler } from './admissions.scheduler';
+import { AdmissionsTasksService } from './admissions.tasks.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
-  providers: [AdmissionsService],
+  imports: [PrismaModule, AuthModule, NotificationsModule],
+  providers: [AdmissionsService, AdmissionsScheduler, AdmissionsTasksService],
   controllers: [AdmissionsController],
   exports: [AdmissionsService],
 })

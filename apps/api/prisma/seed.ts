@@ -764,6 +764,58 @@ async function main() {
     },
   });
 
+  // Seed Classes (cohorts)
+  const classYear6A = await prisma.class.upsert({
+    where: { id: "class-year-6-a" },
+    update: {
+      branchId: branch.id,
+      classroomId: classroom.id,
+      name: "Year 6 A",
+      code: "Y6A",
+      capacity: 25,
+      yearGroup: "Year 6",
+      active: true,
+    },
+    create: {
+      id: "class-year-6-a",
+      branch: {
+        connect: { id: branch.id },
+      },
+      classroom: {
+        connect: { id: classroom.id },
+      },
+      name: "Year 6 A",
+      code: "Y6A",
+      capacity: 25,
+      yearGroup: "Year 6",
+      active: true,
+    },
+  });
+
+  const classYear7B = await prisma.class.upsert({
+    where: { id: "class-year-7-b" },
+    update: {
+      branchId: branch.id,
+      classroomId: null,
+      name: "Year 7 B",
+      code: "Y7B",
+      capacity: 30,
+      yearGroup: "Year 7",
+      active: true,
+    },
+    create: {
+      id: "class-year-7-b",
+      branch: {
+        connect: { id: branch.id },
+      },
+      name: "Year 7 B",
+      code: "Y7B",
+      capacity: 30,
+      yearGroup: "Year 7",
+      active: true,
+    },
+  });
+
   const classSchedule = await prisma.classSchedule.upsert({
     where: { id: "main-campus-room-a-morning-math" },
     update: {
@@ -1370,6 +1422,7 @@ async function main() {
   console.log("Seeded parent guardian:", parentGuardian.email);
   console.log("Seeded students:", students.map((student) => student.email));
   console.log("Seeded classroom:", classroom.name);
+  console.log("Seeded classes:", [classYear6A.name, classYear7B.name]);
   console.log("Seeded class schedule:", classSchedule.title);
   console.log("Seeded staff assignments:", [teacherUser.email, teachingAssistant.email]);
   console.log("Seeded attendance sessions:", [attendanceSession.id, secondAttendanceSession.id]);

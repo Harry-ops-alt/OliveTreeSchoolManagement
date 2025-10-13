@@ -10,12 +10,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
-import { JwtAuthGuard } from '../auth/guards/jwt.guard.js';
-import { RolesGuard } from '../auth/guards/roles.guard.js';
-import { Roles } from '../auth/decorators/roles.decorator.js';
-import { OrgsService, OrganizationWithBranches } from './orgs.service.js';
-import { CreateOrganizationDto } from './dto/create-organization.dto.js';
-import { UpdateOrganizationDto } from './dto/update-organization.dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { OrgsService, OrganizationWithBranches } from './orgs.service';
+import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 @Controller('orgs')
 @UseGuards(JwtAuthGuard, RolesGuard)

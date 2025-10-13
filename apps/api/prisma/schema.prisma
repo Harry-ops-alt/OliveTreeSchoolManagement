@@ -104,6 +104,7 @@ enum AdmissionApplicationStatus {
   UNDER_REVIEW
   OFFER_SENT
   ACCEPTED
+  ENROLLED
   REJECTED
   WITHDRAWN
 }
@@ -166,6 +167,7 @@ model Branch {
   admissions            Admission[]
   transactions          FinanceTransaction[]
   classrooms            Classroom[]
+  classes               Class[]
   classSchedules        ClassSchedule[]
   attendanceSessions    AttendanceSession[]
   guardians             Guardian[]
@@ -343,6 +345,7 @@ model Classroom {
   description             String?
   branch                  Branch                   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   schedules               ClassSchedule[]
+  classes                 Class[]
   attendance              AttendanceSession[]
   students                StudentProfile[]
   classroomStaff          StaffAssignment[]
@@ -351,6 +354,31 @@ model Classroom {
   updatedAt               DateTime                 @updatedAt
 
   @@index([branchId])
+}
+
+model Class {
+  id           String     @id @default(uuid())
+  branchId     String
+  classroomId  String?
+  name         String
+  code         String?
+  capacity     Int        @default(0)
+  yearGroup    String?
+  startDate    DateTime?
+  endDate      DateTime?
+  active       Boolean    @default(true)
+  metadata     Json?
+  isDeleted    Boolean    @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  branch       Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  classroom    Classroom? @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+
+  @@index([branchId])
+  @@index([classroomId])
+  @@index([active, branchId])
 }
 
 model ClassSchedule {
@@ -410,6 +438,39 @@ model AdmissionLead {
   notes              String?
   tags               String[]                    @default([])
   metadata           Json?
+  preferredContactChannel AdmissionContactChannel?
+  preferredContactTimezone String?
+  preferredContactNotes    String?
+  studentPreferredStart    DateTime?
+  studentYearGroup         String?
+  studentCurrentSchool     String?
+  studentCurrentYear       String?
+  studentInterests         String?
+  studentLanguages         String[]                    @default([])
+  studentHasSen            Boolean                     @default(false)
+  studentSenDetails        String?
+  studentMedicalNotes      String?
+  studentSupportNotes      String?
+  studentAdditionalNeeds   Json?
+  addressLine1             String?
+  addressLine2             String?
+  city                     String?
+  state                    String?
+  postalCode               String?
+  country                  String?
+  marketingOptIn           Boolean                     @default(false)
+  consentShareData         Boolean                     @default(false)
+  referralSourceDetail     String?
+  referralCode             String?
+  preferredTasterDates     DateTime[]                  @default([])
+  preferredTasterNotes     String?
+  additionalChildren       Json?
+  newAt                    DateTime?                  @db.Timestamp(6)
+  contactedAt              DateTime?                  @db.Timestamp(6)
+  tasterScheduledAt        DateTime?                  @db.Timestamp(6)
+  tasterAttendedAt         DateTime?                  @db.Timestamp(6)
+  appliedAt                DateTime?                  @db.Timestamp(6)
+  enrolledAt               DateTime?                  @db.Timestamp(6)
   stage              AdmissionLeadStage          @default(NEW)
   branch             Branch?                     @relation(fields: [branchId], references: [id], onDelete: SetNull)
   assignedStaff      User?                       @relation("AdmissionLeadAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: SetNull)
@@ -476,6 +537,9 @@ model AdmissionTasterSession {
   endTime         DateTime
   capacity        Int?
   assignedStaffId String?
+  reminder24hScheduledAt DateTime?          @db.Timestamp(6)
+  reminder2hScheduledAt  DateTime?          @db.Timestamp(6)
+  noShowSweepCompletedAt DateTime?          @db.Timestamp(6)
   branch          Branch                    @relation(fields: [branchId], references: [id], onDelete: Cascade)
   classroom       Classroom?                @relation(fields: [classroomId], references: [id], onDelete: SetNull)
   assignedStaff   User?                     @relation("AdmissionTasterAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: SetNull)
@@ -495,6 +559,9 @@ model AdmissionTasterAttendee {
   status     AdmissionTasterStatus  @default(INVITED)
   notes      String?
   attendedAt DateTime?
+  reminder24hNotifiedAt DateTime?    @db.Timestamp(6)
+  reminder2hNotifiedAt  DateTime?    @db.Timestamp(6)
+  noShowAt              DateTime?    @db.Timestamp(6)
   taster     AdmissionTasterSession @relation(fields: [tasterId], references: [id], onDelete: Cascade)
   lead       AdmissionLead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
@@ -510,6 +577,10 @@ model AdmissionApplication {
   requestedStart DateTime?
   status         AdmissionApplicationStatus @default(DRAFT)
   submittedAt    DateTime?
+  reviewStartedAt DateTime?                 @db.Timestamp(6)
+  offerSentAt     DateTime?                 @db.Timestamp(6)
+  offerAcceptedAt DateTime?                 @db.Timestamp(6)
+  enrolledAt      DateTime?                 @db.Timestamp(6)
   reviewedById   String?
   decision       AdmissionDecision?
   decisionNotes  String?

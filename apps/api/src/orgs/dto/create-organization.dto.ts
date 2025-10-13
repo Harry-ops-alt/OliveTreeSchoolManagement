@@ -7,7 +7,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { CreateBranchDto } from './create-branch.dto.js';
+import { CreateBranchDto } from './create-branch.dto';
 
 export class CreateOrganizationDto {
   @IsString()

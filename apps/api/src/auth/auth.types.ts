@@ -1,4 +1,4 @@
-import type { SessionUserData } from '../users/users.service.js';
+import type { SessionUserData } from '../users/users.service';
 
 export interface AuthTokenPayload extends SessionUserData {
   sub: string;

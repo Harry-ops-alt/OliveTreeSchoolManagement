@@ -58,4 +58,24 @@ export class CreateApplicationDto {
 
   @IsOptional()
   extraData?: Record<string, unknown>;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  reviewStartedAt?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  offerSentAt?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  offerAcceptedAt?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  enrolledAt?: Date;
 }

@@ -5,6 +5,7 @@ import {
   Briefcase,
   Calendar,
   CalendarCheck,
+  Building,
   Globe,
   Folder,
   GraduationCap,
@@ -102,8 +103,28 @@ export const navigationGroups: NavGroup[] = [
         ],
       },
       {
-        label: 'Classes & Timetable',
+        label: 'Branches & Rooms',
+        href: '/app/branches',
+        icon: Building,
+        roles: ['SUPER_ADMIN', 'SCHOOL_ADMIN', 'OPERATIONS_MANAGER', 'BRANCH_MANAGER'],
+      },
+      {
+        label: 'Classes',
         href: '/app/classes',
+        icon: Users,
+        roles: [
+          'SUPER_ADMIN',
+          'SCHOOL_ADMIN',
+          'OPERATIONS_MANAGER',
+          'BRANCH_MANAGER',
+          'TEACHER',
+          'TEACHING_ASSISTANT',
+          'SUPPORT_STAFF',
+        ],
+      },
+      {
+        label: 'Schedules',
+        href: '/app/schedules',
         icon: Calendar,
         roles: [
           'SUPER_ADMIN',

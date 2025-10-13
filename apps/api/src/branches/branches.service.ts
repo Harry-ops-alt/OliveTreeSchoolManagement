@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Branch, Classroom, Organization, Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateBranchDto } from '../orgs/dto/create-branch.dto.js';
-import { UpdateBranchDto } from '../orgs/dto/update-branch.dto.js';
-import { CreateClassroomDto } from '../orgs/dto/create-classroom.dto.js';
-import { UpdateClassroomDto } from '../orgs/dto/update-classroom.dto.js';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateBranchDto } from '../orgs/dto/create-branch.dto';
+import { UpdateBranchDto } from '../orgs/dto/update-branch.dto';
+import { CreateClassroomDto } from '../orgs/dto/create-classroom.dto';
+import { UpdateClassroomDto } from '../orgs/dto/update-classroom.dto';
 
 @Injectable()
 export class BranchesService {
