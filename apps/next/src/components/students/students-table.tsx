@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import type { StudentWithRelations } from '../../lib/api/students';
 import { StatusPill } from '../status-pill';
+import { Card, CardContent } from '../ui/card';
 
 export interface StudentsTableProps {
   students: StudentWithRelations[];
@@ -46,67 +47,75 @@ export function StudentsTable({ students, onView, onEdit, onDelete, deleting = {
 
   if (!hasStudents) {
     return (
-      <div className="rounded-2xl border border-dashed border-emerald-500/40 bg-emerald-900/50 p-10 text-center text-sm text-emerald-100/70">
-        No students match your filters. Adjust the criteria or add a new student.
-      </div>
+      <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+        <CardContent className="p-10 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            No students match your filters. Adjust the criteria or add a new student.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-emerald-700/40">
-      <table className="min-w-full divide-y divide-emerald-800/40 bg-emerald-950/70 text-sm text-emerald-100">
-        <thead className="bg-emerald-900/60 text-xs uppercase tracking-wide text-emerald-200/80">
-          <tr>
-            <th scope="col" className="px-4 py-3 text-left">Name</th>
-            <th scope="col" className="px-4 py-3 text-left">Grade/Year</th>
-            <th scope="col" className="px-4 py-3 text-left">Campus</th>
-            <th scope="col" className="px-4 py-3 text-left">Guardians</th>
-            <th scope="col" className="px-4 py-3 text-left">Status</th>
-            <th scope="col" className="px-4 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-emerald-800/40">
-          {rows.map((row) => (
-            <tr key={row.key} className="transition hover:bg-emerald-900/40">
-              <td className="px-4 py-3 font-medium text-white">{row.name}</td>
-              <td className="px-4 py-3">{row.grade}</td>
-              <td className="px-4 py-3">{row.campus}</td>
-              <td className="px-4 py-3">{row.guardiansCount}</td>
-              <td className="px-4 py-3">
-                <StatusPill value={row.status} />
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center justify-end gap-2 text-xs font-semibold uppercase tracking-wide">
-                  <button
-                    type="button"
-                    className="rounded-lg border border-emerald-500/40 bg-emerald-800/30 px-3 py-1.5 text-emerald-100 transition hover:bg-emerald-700/40 disabled:cursor-not-allowed disabled:opacity-60"
-                    onClick={() => onView(row.raw)}
-                    disabled={Boolean(deleting[row.key])}
-                  >
-                    View
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-lg border border-emerald-500/40 bg-emerald-500/20 px-3 py-1.5 text-emerald-100 transition hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-60"
-                    onClick={() => onEdit(row.raw)}
-                    disabled={Boolean(deleting[row.key])}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-1.5 text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                    onClick={() => onDelete(row.raw)}
-                    disabled={Boolean(deleting[row.key])}
-                  >
-                    {deleting[row.key] ? 'Deleting…' : 'Delete'}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <th scope="col" className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Name</th>
+                <th scope="col" className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Grade/Year</th>
+                <th scope="col" className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Campus</th>
+                <th scope="col" className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Guardians</th>
+                <th scope="col" className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                <th scope="col" className="px-6 py-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.key} className="border-b border-gray-100 dark:border-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{row.name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{row.grade}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{row.campus}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{row.guardiansCount}</td>
+                  <td className="px-6 py-4">
+                    <StatusPill value={row.status} />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => onView(row.raw)}
+                        disabled={Boolean(deleting[row.key])}
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-md border border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-400 transition-all hover:bg-blue-100 dark:hover:bg-blue-900/30 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => onEdit(row.raw)}
+                        disabled={Boolean(deleting[row.key])}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-md border border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-400 transition-all hover:bg-red-100 dark:hover:bg-red-900/30 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => onDelete(row.raw)}
+                        disabled={Boolean(deleting[row.key])}
+                      >
+                        {deleting[row.key] ? 'Deleting…' : 'Delete'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
