@@ -34,38 +34,38 @@ export function StatsCard({
   variant = 'default',
 }: StatsCardProps) {
   return (
-    <Card className="bg-card shadow-sm transition-all hover:shadow-md">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <Card className="group bg-card border-border/40 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-border hover:-translate-y-0.5">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {title}
         </CardTitle>
         {Icon && (
-          <div className={`rounded-xl p-2.5 ${iconVariantStyles[variant]}`}>
+          <div className={`rounded-xl p-2.5 transition-transform duration-300 group-hover:scale-110 ${iconVariantStyles[variant]}`}>
             <Icon className="h-5 w-5" />
           </div>
         )}
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-3">
         {loading ? (
-          <Skeleton className="h-9 w-28" />
+          <Skeleton className="h-10 w-32" />
         ) : (
-          <div className="text-3xl font-semibold text-foreground">{value}</div>
+          <div className="text-3xl font-bold tracking-tight text-foreground">{value}</div>
         )}
         {trend && !loading && (
           <div className="flex items-center gap-1.5">
             {trend.isPositive ? (
-              <TrendingUp className="h-3.5 w-3.5 text-[hsl(var(--success))]" />
+              <TrendingUp className="h-4 w-4 text-[hsl(var(--success))]" />
             ) : (
-              <TrendingDown className="h-3.5 w-3.5 text-[hsl(var(--error))]" />
+              <TrendingDown className="h-4 w-4 text-[hsl(var(--error))]" />
             )}
-            <span className={`text-xs font-medium ${trend.isPositive ? 'text-[hsl(var(--success))]' : 'text-[hsl(var(--error))]'}`}>
+            <span className={`text-sm font-semibold ${trend.isPositive ? 'text-[hsl(var(--success))]' : 'text-[hsl(var(--error))]'}`}>
               {trend.isPositive ? '+' : ''}{trend.value}%
             </span>
             <span className="text-xs text-muted-foreground">vs last period</span>
           </div>
         )}
         {description && !trend && (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
         )}
       </CardContent>
     </Card>

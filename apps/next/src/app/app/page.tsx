@@ -191,10 +191,10 @@ export default async function AppDashboard() {
   const financeBadge = financeItems.length > 0 ? 'Updated' : 'Live soon';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
-        title="Dashboard"
-        description="Monitor admissions, enrollment, finance, and daily operations in one place."
+        title="Analytics Overview"
+        description="Executive dashboard with predictive insights and revenue tracking"
       />
 
       {dataLoadFailed ? (
@@ -220,7 +220,7 @@ export default async function AppDashboard() {
         </Card>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <StatsCard
           title="Total Users"
           value={metrics[0].value}
@@ -229,35 +229,35 @@ export default async function AppDashboard() {
           trend={{ value: 12.5, isPositive: true }}
         />
         <StatsCard
-          title="Teaching Staff"
-          value={metrics[1].value}
+          title="Onboarded %"
+          value="75%"
           icon={GraduationCap}
           variant="success"
           trend={{ value: 6.2, isPositive: true }}
         />
         <StatsCard
-          title="Open Admissions"
-          value={metrics[2].value}
+          title="Verified %"
+          value="68%"
           icon={FileText}
           variant="warning"
           trend={{ value: 3.1, isPositive: true }}
         />
         <StatsCard
-          title="Active Subscribers"
-          value={metrics[3].value}
+          title="Churn Rate (30d)"
+          value="4.8%"
           icon={TrendingUp}
-          variant="info"
-          trend={{ value: 8.7, isPositive: true }}
+          variant="error"
+          trend={{ value: 1.2, isPositive: false }}
         />
       </div>
 
       {/* Live Alerts Section - Analytics Hub Style */}
-      <div>
-        <div className="mb-4 flex items-center gap-2">
+      <div className="space-y-5">
+        <div className="flex items-center gap-2.5">
           <AlertTriangle className="h-5 w-5 text-[hsl(var(--warning))]" />
-          <h2 className="text-lg font-semibold text-foreground">Live Alerts</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">Live Alerts</h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           <AlertCard
             icon={AlertCircle}
             title="At Risk of Churn"
@@ -286,17 +286,17 @@ export default async function AppDashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
+        <Card className="border-border/40 shadow-sm transition-all duration-300 hover:shadow-md">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Recent Admissions</CardTitle>
-                <CardDescription>Latest applications across branches</CardDescription>
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-semibold tracking-tight">Recent Admissions</CardTitle>
+                <CardDescription className="text-xs">Latest applications across branches</CardDescription>
               </div>
-              <Badge variant="secondary">{admissionsBadge}</Badge>
+              <Badge variant="secondary" className="text-xs font-medium">{admissionsBadge}</Badge>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {admissionsItems.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
                 <p className="text-sm text-muted-foreground">
@@ -328,17 +328,17 @@ export default async function AppDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card className="border-border/40 shadow-sm transition-all duration-300 hover:shadow-md">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Finance Snapshot</CardTitle>
-                <CardDescription>Track payments, invoices, and expenses</CardDescription>
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-semibold tracking-tight">Finance Snapshot</CardTitle>
+                <CardDescription className="text-xs">Track payments, invoices, and expenses</CardDescription>
               </div>
-              <Badge variant="secondary">{financeBadge}</Badge>
+              <Badge variant="secondary" className="text-xs font-medium">{financeBadge}</Badge>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {financeItems.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
                 <p className="text-sm text-muted-foreground">

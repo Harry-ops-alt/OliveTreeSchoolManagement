@@ -31,15 +31,15 @@ const countVariantStyles = {
 
 export function AlertCard({ icon: Icon, title, count, variant = 'info' }: AlertCardProps) {
   return (
-    <Card className={`border ${variantStyles[variant]}`}>
-      <CardContent className="flex items-center justify-between p-4">
+    <Card className={`group border transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${variantStyles[variant]}`}>
+      <CardContent className="flex items-center justify-between p-5">
         <div className="flex items-center gap-3">
-          <div className={`rounded-lg p-2 ${iconVariantStyles[variant]}`}>
+          <div className={`rounded-xl p-2.5 transition-transform duration-300 group-hover:scale-110 ${iconVariantStyles[variant]}`}>
             <Icon className="h-4 w-4" />
           </div>
-          <span className="text-sm font-medium text-foreground">{title}</span>
+          <span className="text-sm font-medium text-foreground leading-tight">{title}</span>
         </div>
-        <span className={`text-xl font-semibold ${countVariantStyles[variant]}`}>
+        <span className={`text-2xl font-bold tabular-nums ${countVariantStyles[variant]}`}>
           {count}
         </span>
       </CardContent>

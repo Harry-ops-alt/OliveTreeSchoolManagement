@@ -8,13 +8,13 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
+    <div className="flex items-start justify-between gap-6 pb-2">
+      <div className="space-y-1.5">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           {title}
         </h1>
         {description && (
-          <p className="text-sm text-muted-foreground lg:text-base">
+          <p className="text-sm leading-relaxed text-muted-foreground max-w-2xl">
             {description}
           </p>
         )}
