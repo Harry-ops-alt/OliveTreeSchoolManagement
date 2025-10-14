@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Eye, CreditCard, FileText } from 'lucide-react';
+import { Plus, Search, Eye, CreditCard, FileText, AlertCircle, CheckCircle, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -29,6 +29,9 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -152,16 +155,16 @@ export default function InvoicesPage() {
   };
 
   const getStatusBadge = (status: InvoiceStatus) => {
-    const variants: Record<InvoiceStatus, { variant: any; label: string }> = {
+    const variants: Record<InvoiceStatus, { variant: any; label: string; className?: string }> = {
       DRAFT: { variant: 'secondary', label: 'Draft' },
-      ISSUED: { variant: 'default', label: 'Issued' },
-      PAID: { variant: 'default', label: 'Paid' },
-      PARTIALLY_PAID: { variant: 'default', label: 'Partial' },
+      ISSUED: { variant: 'default', label: 'Issued', className: 'bg-blue-500 hover:bg-blue-600' },
+      PAID: { variant: 'default', label: 'Paid', className: 'bg-green-500 hover:bg-green-600' },
+      PARTIALLY_PAID: { variant: 'default', label: 'Partial', className: 'bg-yellow-500 hover:bg-yellow-600' },
       OVERDUE: { variant: 'destructive', label: 'Overdue' },
       CANCELLED: { variant: 'secondary', label: 'Cancelled' },
     };
-    const { variant, label } = variants[status];
-    return <Badge variant={variant}>{label}</Badge>;
+    const { variant, label, className } = variants[status];
+    return <Badge variant={variant} className={className}>{label}</Badge>;
   };
 
   const stats = {
@@ -173,120 +176,215 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Invoices & Payments</h1>
-          <p className="text-muted-foreground">Manage student invoices and record payments</p>
+        <div className="space-y-1">
+          <h1 className="text-4xl font-bold tracking-tight">Invoices & Payments</h1>
+          <p className="text-lg text-muted-foreground">
+            Track invoices, record payments, and monitor outstanding balances
+          </p>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-lg border p-4">
-          <div className="text-sm font-medium text-muted-foreground">Total Invoices</div>
-          <div className="text-2xl font-bold">{stats.total}</div>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-sm font-medium text-muted-foreground">Paid</div>
-          <div className="text-2xl font-bold text-green-600">{stats.paid}</div>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-sm font-medium text-muted-foreground">Overdue</div>
-          <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
-        </div>
-        <div className="rounded-lg border p-4">
-          <div className="text-sm font-medium text-muted-foreground">Outstanding</div>
-          <div className="text-2xl font-bold">
-            {formatCurrency(stats.totalAmount - stats.paidAmount)}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search invoices..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value as InvoiceStatus | 'ALL')}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Statuses</SelectItem>
-            <SelectItem value="ISSUED">Issued</SelectItem>
-            <SelectItem value="PAID">Paid</SelectItem>
-            <SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
-            <SelectItem value="OVERDUE">Overdue</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Invoice #</TableHead>
-              <TableHead>Student</TableHead>
-              <TableHead>Issue Date</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Paid</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-4">
+        <Card className="border-l-4 border-l-blue-500 transition-all hover:shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Invoices
+            </CardTitle>
+            <FileText className="h-5 w-5 text-blue-500" />
+          </CardHeader>
+          <CardContent>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center">
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : filteredInvoices.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center">
-                  No invoices found
-                </TableCell>
-              </TableRow>
+              <Skeleton className="h-8 w-16" />
             ) : (
-              filteredInvoices.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                  <TableCell>
-                    {invoice.student?.user.firstName} {invoice.student?.user.lastName}
-                  </TableCell>
-                  <TableCell>{formatDate(invoice.issueDate)}</TableCell>
-                  <TableCell>{formatDate(invoice.dueDate)}</TableCell>
-                  <TableCell>{formatCurrency(invoice.amount)}</TableCell>
-                  <TableCell>{formatCurrency(invoice.paidAmount)}</TableCell>
-                  <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openPaymentDialog(invoice)}
-                        >
-                          <CreditCard className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              <div className="text-3xl font-bold">{stats.total}</div>
             )}
-          </TableBody>
-        </Table>
+            <p className="mt-1 text-xs text-muted-foreground">
+              All time
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-green-500 transition-all hover:shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Paid Invoices
+            </CardTitle>
+            <CheckCircle className="h-5 w-5 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-3xl font-bold text-green-600">{stats.paid}</div>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              Fully settled
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-red-500 transition-all hover:shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Overdue
+            </CardTitle>
+            <AlertCircle className="h-5 w-5 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-3xl font-bold text-red-600">{stats.overdue}</div>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              Requires attention
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-purple-500 transition-all hover:shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Outstanding
+            </CardTitle>
+            <DollarSign className="h-5 w-5 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <div className="text-3xl font-bold">
+                {formatCurrency(stats.totalAmount - stats.paidAmount)}
+              </div>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              Pending collection
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Search and Filters */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by invoice number or student name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-11"
+              />
+            </div>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setStatusFilter(value as InvoiceStatus | 'ALL')}
+            >
+              <SelectTrigger className="w-[180px] h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="ISSUED">Issued</SelectItem>
+                <SelectItem value="PAID">Paid</SelectItem>
+                <SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
+                <SelectItem value="OVERDUE">Overdue</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Invoices</CardTitle>
+          <CardDescription>
+            {filteredInvoices.length} {filteredInvoices.length === 1 ? 'invoice' : 'invoices'} found
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Invoice #</TableHead>
+                  <TableHead className="font-semibold">Student</TableHead>
+                  <TableHead className="font-semibold">Issue Date</TableHead>
+                  <TableHead className="font-semibold">Due Date</TableHead>
+                  <TableHead className="font-semibold">Amount</TableHead>
+                  <TableHead className="font-semibold">Paid</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-10 ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : filteredInvoices.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-32 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <FileText className="h-12 w-12 text-muted-foreground/50" />
+                        <p className="text-lg font-medium">No invoices found</p>
+                        <p className="text-sm text-muted-foreground">
+                          {searchQuery ? 'Try adjusting your search or filters' : 'Invoices will appear here once generated'}
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredInvoices.map((invoice) => (
+                    <TableRow key={invoice.id} className="group hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-bold text-base">{invoice.invoiceNumber}</TableCell>
+                      <TableCell>
+                        <div className="font-semibold">
+                          {invoice.student?.user.firstName} {invoice.student?.user.lastName}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(invoice.issueDate)}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(invoice.dueDate)}</TableCell>
+                      <TableCell className="font-bold text-base">{formatCurrency(invoice.amount)}</TableCell>
+                      <TableCell className="font-semibold text-green-600">{formatCurrency(invoice.paidAmount)}</TableCell>
+                      <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openPaymentDialog(invoice)}
+                              className="hover:bg-green-50 hover:text-green-600"
+                            >
+                              <CreditCard className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <DialogContent className="sm:max-w-[500px]">
