@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 import {
   ApiError,
   deleteStudent,
@@ -14,6 +14,10 @@ import {
 import { StudentsTable } from '../../../components/students/students-table';
 import { StudentsFilters, type StudentFiltersState } from '../../../components/students/students-filters';
 import { useToastHelpers } from '../../../components/toast/toast-provider';
+import { PageHeader } from '../../../components/ui/page-header';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Skeleton } from '../../../components/ui/skeleton';
 
 const PAGE_SIZE = 10;
 
@@ -30,24 +34,28 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 
 function StudentsTableSkeleton(): JSX.Element {
   return (
-    <div className="overflow-hidden rounded-2xl border border-emerald-700/40">
-      <div className="h-12 bg-emerald-900/60" />
-      <ul className="divide-y divide-emerald-800/40 bg-emerald-950/60">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <li key={index} className="flex items-center gap-6 px-4 py-4">
-            <div className="h-4 w-40 animate-pulse rounded bg-emerald-800/40" />
-            <div className="h-4 w-24 animate-pulse rounded bg-emerald-800/40" />
-            <div className="h-4 w-28 animate-pulse rounded bg-emerald-800/30" />
-            <div className="h-4 w-16 animate-pulse rounded bg-emerald-800/30" />
-            <div className="ms-auto flex gap-2">
-              <div className="h-8 w-16 animate-pulse rounded bg-emerald-800/40" />
-              <div className="h-8 w-16 animate-pulse rounded bg-emerald-800/30" />
-              <div className="h-8 w-16 animate-pulse rounded bg-emerald-800/20" />
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Card>
+      <CardContent className="p-0">
+        <div className="overflow-hidden rounded-lg">
+          <div className="h-12 bg-muted/30" />
+          <ul className="divide-y divide-border">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <li key={index} className="flex items-center gap-6 px-6 py-4">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-16" />
+                <div className="ms-auto flex gap-2">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -66,29 +74,31 @@ function PaginationControls({
   const canNext = meta.page < meta.totalPages;
 
   return (
-    <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-emerald-700/40 bg-emerald-950/60 px-4 py-3 text-xs uppercase tracking-wide text-emerald-200/80 md:flex-row">
-      <span>
-        Page {meta.page} of {meta.totalPages}
-      </span>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          className="rounded-lg border border-emerald-500/40 bg-emerald-900/40 px-4 py-2 text-emerald-100 transition hover:bg-emerald-800/40 disabled:cursor-not-allowed disabled:opacity-60"
-          onClick={() => onChange(meta.page - 1)}
-          disabled={!canPrevious}
-        >
-          Previous
-        </button>
-        <button
-          type="button"
-          className="rounded-lg border border-emerald-500/40 bg-emerald-500/20 px-4 py-2 text-emerald-100 transition hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-60"
-          onClick={() => onChange(meta.page + 1)}
-          disabled={!canNext}
-        >
-          Next
-        </button>
-      </div>
-    </div>
+    <Card>
+      <CardContent className="flex flex-col items-center justify-between gap-4 p-4 md:flex-row">
+        <span className="text-sm text-muted-foreground">
+          Page {meta.page} of {meta.totalPages}
+        </span>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onChange(meta.page - 1)}
+            disabled={!canPrevious}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => onChange(meta.page + 1)}
+            disabled={!canNext}
+          >
+            Next
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -227,61 +237,59 @@ export default function StudentsPage(): JSX.Element {
   }, [meta, students]);
 
   return (
-    <div className="min-h-screen bg-emerald-950 text-emerald-50">
-      <div className="mx-auto max-w-6xl px-6 py-12 space-y-8">
-        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-emerald-300/80">Students</p>
-            <h1 className="text-3xl font-semibold text-white">Student directory</h1>
-            <p className="text-sm text-emerald-100/70">
-              Browse and manage enrolled students, review guardian information, and archive profiles when
-              needed.
-            </p>
-          </div>
-          <Link
-            href="/app/students/new"
-            className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/20 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-500/30"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            Create student
+    <div className="space-y-6">
+      <PageHeader
+        title="Student Directory"
+        description="Browse and manage enrolled students, review guardian information, and archive profiles when needed."
+        action={
+          <Link href="/app/students/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Student
+            </Button>
           </Link>
-        </header>
+        }
+      />
 
-        <StudentsFilters onChange={handleFiltersChange} />
+      <StudentsFilters onChange={handleFiltersChange} />
 
-        {summary ? (
-          <div className="rounded-2xl border border-emerald-700/40 bg-emerald-950/60 px-4 py-2 text-xs uppercase tracking-wide text-emerald-200/80">
-            {summary}
-          </div>
-        ) : null}
+      {summary ? (
+        <Card>
+          <CardContent className="p-3">
+            <p className="text-sm text-muted-foreground">{summary}</p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {loadError ? (
-          <div className="rounded-2xl border border-emerald-500/40 bg-emerald-900/60 p-6 text-sm text-emerald-100/70">
-            {loadError}
-            <button
-              type="button"
-              className="mt-4 rounded-xl border border-emerald-500/40 bg-emerald-800/30 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-700/40"
+      {loadError ? (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="p-6">
+            <p className="text-sm text-foreground">{loadError}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4"
               onClick={() => refreshStudents()}
             >
               Retry
-            </button>
-          </div>
-        ) : null}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {loading ? (
-          <StudentsTableSkeleton />
-        ) : (
-          <StudentsTable
-            students={students}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            deleting={deleting}
-          />
-        )}
+      {loading ? (
+        <StudentsTableSkeleton />
+      ) : (
+        <StudentsTable
+          students={students}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          deleting={deleting}
+        />
+      )}
 
-        <PaginationControls meta={meta} onChange={handlePageChange} />
-      </div>
+      <PaginationControls meta={meta} onChange={handlePageChange} />
     </div>
   );
 }
