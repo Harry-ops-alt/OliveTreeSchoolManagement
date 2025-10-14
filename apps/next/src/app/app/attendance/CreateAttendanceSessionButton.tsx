@@ -165,29 +165,29 @@ export function CreateAttendanceSessionButton(): JSX.Element {
       <button
         type="button"
         onClick={openModal}
-        className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/20 px-4 py-2 text-xs font-medium text-emerald-200 transition hover:border-emerald-300 hover:text-emerald-100"
+        className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow"
       >
         <Plus className="h-4 w-4" aria-hidden />
         Create session
       </button>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-emerald-950/80 backdrop-blur" role="dialog" aria-modal>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal>
           <div
-            className="w-full max-w-xl rounded-3xl border border-emerald-500/30 bg-emerald-950/95 p-6 text-emerald-50 shadow-2xl"
+            className="w-full max-w-xl rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-white">New attendance session</h2>
-                <p className="text-sm text-emerald-100/70">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">New attendance session</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Schedule an ad-hoc register for a branch and optionally link it to a class timetable entry.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-full border border-emerald-500/40 p-1 text-emerald-200 transition hover:border-emerald-300 hover:text-emerald-100"
+                className="rounded-lg p-1 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" aria-hidden />
@@ -196,10 +196,10 @@ export function CreateAttendanceSessionButton(): JSX.Element {
 
             <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-emerald-300/80">Branch</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Branch</label>
                 <div className="relative">
                   <select
-                    className="w-full rounded-xl border border-emerald-500/40 bg-emerald-900/50 px-4 py-2 text-sm text-emerald-50 focus:border-emerald-300 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     value={branchId}
                     onChange={(event) => {
                       setBranchId(event.target.value);
@@ -216,16 +216,16 @@ export function CreateAttendanceSessionButton(): JSX.Element {
                     ))}
                   </select>
                   {branchesLoading ? (
-                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-emerald-200" aria-hidden />
+                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-400" aria-hidden />
                   ) : null}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-emerald-300/80">Session date & time</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Session date & time</label>
                 <input
                   type="datetime-local"
-                  className="w-full rounded-xl border border-emerald-500/40 bg-emerald-900/50 px-4 py-2 text-sm text-emerald-50 focus:border-emerald-300 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   value={dateTime}
                   onChange={(event) => setDateTime(event.target.value)}
                   disabled={isSubmitting}
@@ -234,10 +234,10 @@ export function CreateAttendanceSessionButton(): JSX.Element {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-emerald-300/80">Link existing class (optional)</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Link existing class (optional)</label>
                 <div className="relative">
                   <select
-                    className="w-full rounded-xl border border-emerald-500/40 bg-emerald-900/50 px-4 py-2 text-sm text-emerald-50 focus:border-emerald-300 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     value={classScheduleId}
                     onChange={(event) => setClassScheduleId(event.target.value)}
                     disabled={classSchedulesLoading || isSubmitting || !hasBranches}
@@ -250,18 +250,18 @@ export function CreateAttendanceSessionButton(): JSX.Element {
                     ))}
                   </select>
                   {classSchedulesLoading ? (
-                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-emerald-200" aria-hidden />
+                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-400" aria-hidden />
                   ) : null}
                 </div>
                 {hasBranches && classSchedules.length === 0 && !classSchedulesLoading ? (
-                  <p className="text-xs text-emerald-100/60">No recurring classes found for {selectedBranchName || 'this branch'}.</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">No recurring classes found for {selectedBranchName || 'this branch'}.</p>
                 ) : null}
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-emerald-300/80">Notes</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
                 <textarea
-                  className="w-full rounded-xl border border-emerald-500/40 bg-emerald-900/50 px-4 py-2 text-sm text-emerald-50 focus:border-emerald-300 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   rows={3}
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
@@ -273,7 +273,7 @@ export function CreateAttendanceSessionButton(): JSX.Element {
               <div className="flex items-center justify-end gap-3">
                 <button
                   type="button"
-                  className="rounded-full border border-emerald-500/40 px-4 py-2 text-xs font-medium text-emerald-200 transition hover:border-emerald-300 hover:text-emerald-100"
+                  className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-700"
                   onClick={closeModal}
                   disabled={isSubmitting}
                 >
@@ -281,7 +281,7 @@ export function CreateAttendanceSessionButton(): JSX.Element {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-full border border-emerald-400/60 bg-emerald-500/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-emerald-100 transition hover:border-emerald-200 hover:text-white disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting || !hasBranches}
                 >
                   {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}<span>Create session</span>
