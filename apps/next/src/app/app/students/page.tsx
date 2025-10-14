@@ -34,7 +34,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 
 function StudentsTableSkeleton(): JSX.Element {
   return (
-    <Card>
+    <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
       <CardContent className="p-0">
         <div className="overflow-hidden rounded-lg">
           <div className="h-12 bg-muted/30" />
@@ -74,9 +74,9 @@ function PaginationControls({
   const canNext = meta.page < meta.totalPages;
 
   return (
-    <Card>
+    <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
       <CardContent className="flex flex-col items-center justify-between gap-4 p-4 md:flex-row">
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-gray-600 dark:text-gray-400">
           Page {meta.page} of {meta.totalPages}
         </span>
         <div className="flex gap-2">
@@ -254,17 +254,17 @@ export default function StudentsPage(): JSX.Element {
       <StudentsFilters onChange={handleFiltersChange} />
 
       {summary ? (
-        <Card>
-          <CardContent className="p-3">
-            <p className="text-sm text-muted-foreground">{summary}</p>
+        <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+          <CardContent className="p-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">{summary}</p>
           </CardContent>
         </Card>
       ) : null}
 
       {loadError ? (
-        <Card className="border-destructive/50 bg-destructive/5">
+        <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
           <CardContent className="p-6">
-            <p className="text-sm text-foreground">{loadError}</p>
+            <p className="text-sm text-gray-900 dark:text-white">{loadError}</p>
             <Button
               variant="outline"
               size="sm"
