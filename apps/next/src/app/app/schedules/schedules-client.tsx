@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useToastHelpers } from "../../../components/toast/toast-provider";
 import { listBranches, listClassrooms, listTeacherProfiles } from "../../../lib/api/branches";
+import { PageHeader } from "../../../components/ui/page-header";
+import { Card, CardContent } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
 import {
   ClassScheduleConflictError,
   createClassSchedule,
@@ -233,161 +236,165 @@ export function SchedulesClient({ defaultBranchId }: SchedulesClientProps): JSX.
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-6 py-10">
-      <header className="space-y-2">
-        <p className="text-xs uppercase tracking-wide text-emerald-300/80">Timetable</p>
-        <h1 className="text-3xl font-semibold text-white">Classes & Schedules</h1>
-        <p className="max-w-2xl text-sm text-emerald-100/70">
-          Manage recurring class slots, assign classrooms, and keep teaching staff aligned across each branch.
-        </p>
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        title="Classes & Schedules"
+        description="Manage recurring class slots, assign classrooms, and keep teaching staff aligned across each branch."
+      />
 
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="space-y-1">
-            <label className="text-xs uppercase tracking-wide text-emerald-200/70" htmlFor="branch-select">
-              Branch
-            </label>
-            <select
-              id="branch-select"
-              className="min-w-[220px] rounded-xl border border-emerald-700/50 bg-emerald-950/50 px-4 py-2 text-sm text-white"
-              value={selectedBranchId ?? ""}
-              onChange={(event) => setSelectedBranchId(event.target.value || null)}
-            >
-              <option value="" disabled>
-                {loadingBranches ? "Loading branches…" : "Select a branch"}
-              </option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
+      <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+        <CardContent className="p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="branch-select">
+                Branch
+              </label>
+              <select
+                id="branch-select"
+                className="min-w-[220px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                value={selectedBranchId ?? ""}
+                onChange={(event) => setSelectedBranchId(event.target.value || null)}
+              >
+                <option value="" disabled>
+                  {loadingBranches ? "Loading branches…" : "Select a branch"}
                 </option>
-              ))}
-            </select>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Button
+              onClick={() => setFormState({ mode: "create" })}
+              disabled={!selectedBranch}
+            >
+              <Plus className="h-4 w-4" aria-hidden /> New class
+            </Button>
           </div>
-          <button
-            type="button"
-            onClick={() => setFormState({ mode: "create" })}
-            className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-500/30 disabled:opacity-60"
-            disabled={!selectedBranch}
-          >
-            <Plus className="h-4 w-4" aria-hidden /> New class
-          </button>
-        </div>
 
-        {loadingBranches ? (
-          <div className="rounded-2xl border border-emerald-700/40 bg-emerald-950/60 p-8 text-center text-sm text-emerald-100/70">
-            Loading branches…
-          </div>
-        ) : branchesError ? (
-          <div className="rounded-2xl border border-red-500/40 bg-red-950/40 p-6 text-sm text-red-100/80">{branchesError}</div>
-        ) : null}
-      </section>
+          {loadingBranches ? (
+            <div className="mt-4 p-8 text-center text-sm text-gray-600 dark:text-gray-400">
+              Loading branches…
+            </div>
+          ) : branchesError ? (
+            <div className="mt-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6 text-sm text-red-700 dark:text-red-400">{branchesError}</div>
+          ) : null}
+        </CardContent>
+      </Card>
 
       {selectedBranch ? (
-        <section className="space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Scheduled classes</h2>
-            {loadingSchedules ? <Loader2 className="h-4 w-4 animate-spin text-emerald-200" aria-hidden /> : null}
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Scheduled classes</h2>
+            {loadingSchedules ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden /> : null}
           </div>
 
           {schedulesError ? (
-            <div className="rounded-2xl border border-red-500/40 bg-red-950/40 p-6 text-sm text-red-100/80">
-              {schedulesError}
-            </div>
+            <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
+              <CardContent className="p-6 text-sm text-red-700 dark:text-red-400">
+                {schedulesError}
+              </CardContent>
+            </Card>
           ) : schedules.length === 0 && !loadingSchedules ? (
-            <div className="rounded-2xl border border-emerald-700/40 bg-emerald-950/60 p-8 text-center text-sm text-emerald-100/70">
-              No classes scheduled for this branch yet.
-            </div>
+            <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <CardContent className="p-10 text-center text-sm text-gray-600 dark:text-gray-400">
+                No classes scheduled for this branch yet.
+              </CardContent>
+            </Card>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               {schedules.map((schedule) => (
-                <article
+                <Card
                   key={schedule.id}
-                  className="space-y-3 rounded-2xl border border-emerald-700/40 bg-emerald-950/70 p-5"
+                  className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">{schedule.title}</h3>
-                      <p className="text-xs uppercase tracking-wide text-emerald-200/70">
-                        {schedule.dayOfWeek.charAt(0) + schedule.dayOfWeek.slice(1).toLowerCase()} · {renderScheduleTime(schedule)}
-                      </p>
+                  <CardContent className="p-6 space-y-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{schedule.title}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {schedule.dayOfWeek.charAt(0) + schedule.dayOfWeek.slice(1).toLowerCase()} · {renderScheduleTime(schedule)}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="rounded-lg border border-gray-300 dark:border-gray-600 p-2 text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => setFormState({ mode: "edit", schedule })}
+                          aria-label="Edit class"
+                        >
+                          <Pencil className="h-4 w-4" aria-hidden />
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-red-300 dark:border-red-700 p-2 text-red-700 dark:text-red-400 transition hover:bg-red-50 dark:hover:bg-red-900/20"
+                          onClick={() => void handleDelete(schedule)}
+                          aria-label="Delete class"
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className="rounded-lg border border-emerald-600/40 p-2 text-emerald-100 transition hover:bg-emerald-800/40"
-                        onClick={() => setFormState({ mode: "edit", schedule })}
-                        aria-label="Edit class"
-                      >
-                        <Pencil className="h-4 w-4" aria-hidden />
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-red-500/40 p-2 text-red-200 transition hover:bg-red-500/10"
-                        onClick={() => void handleDelete(schedule)}
-                        aria-label="Delete class"
-                      >
-                        <Trash2 className="h-4 w-4" aria-hidden />
-                      </button>
-                    </div>
-                  </div>
-                  <dl className="space-y-1 text-sm text-emerald-100/80">
-                    <div>
-                      <dt className="text-emerald-200/70">Classroom</dt>
-                      <dd>{schedule.classroom?.name ?? "Unassigned"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-emerald-200/70">Lead teacher</dt>
-                      <dd>
-                        {schedule.teacherProfile?.user
-                          ? `${schedule.teacherProfile.user.firstName ?? ""} ${schedule.teacherProfile.user.lastName ?? ""}`.trim() ||
-                            schedule.teacherProfile.user.email ||
-                            "Unnamed teacher"
-                          : "Unassigned"}
-                      </dd>
-                    </div>
-                  </dl>
-                </article>
+                    <dl className="space-y-2 text-sm">
+                      <div>
+                        <dt className="font-medium text-gray-500 dark:text-gray-400">Classroom</dt>
+                        <dd className="text-gray-900 dark:text-white">{schedule.classroom?.name ?? "Unassigned"}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500 dark:text-gray-400">Lead teacher</dt>
+                        <dd className="text-gray-900 dark:text-white">
+                          {schedule.teacherProfile?.user
+                            ? `${schedule.teacherProfile.user.firstName ?? ""} ${schedule.teacherProfile.user.lastName ?? ""}`.trim() ||
+                              schedule.teacherProfile.user.email ||
+                              "Unnamed teacher"
+                            : "Unassigned"}
+                        </dd>
+                      </div>
+                    </dl>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
-        </section>
+        </div>
       ) : null}
 
       {formState ? (
-        <section className="space-y-4 rounded-2xl border border-emerald-700/40 bg-emerald-950/70 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-white">
-                {formState.mode === "create" ? "Schedule a class" : "Edit class schedule"}
-              </h2>
-              <p className="text-sm text-emerald-100/70">
-                {formState.mode === "create"
-                  ? "Define the lesson slot for this branch, including room and lead teacher."
-                  : "Update the schedule details or change the assigned classroom/teacher."}
-              </p>
+        <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+          <CardContent className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {formState.mode === "create" ? "Schedule a class" : "Edit class schedule"}
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {formState.mode === "create"
+                    ? "Define the lesson slot for this branch, including room and lead teacher."
+                    : "Update the schedule details or change the assigned classroom/teacher."}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={closeForm}
+              >
+                Close
+              </Button>
             </div>
-            <button
-              type="button"
-              onClick={closeForm}
-              className="rounded-xl border border-emerald-600/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-800/40"
-            >
-              Close
-            </button>
-          </div>
 
-          <ClassScheduleForm
-            classrooms={classrooms}
-            teacherProfiles={teacherProfiles}
-            teacherProfilesLoading={loadingTeacherProfiles}
-            initialValues={formState.mode === "edit" ? mapScheduleToFormValues(formState.schedule) : undefined}
-            isSubmitting={isSubmitting}
-            onSubmit={handleSubmit}
-            onCancel={closeForm}
-            conflictDetails={conflictDetails ?? undefined}
-            conflictMessage={conflictMessage}
-          />
-        </section>
+            <ClassScheduleForm
+              classrooms={classrooms}
+              teacherProfiles={teacherProfiles}
+              teacherProfilesLoading={loadingTeacherProfiles}
+              initialValues={formState.mode === "edit" ? mapScheduleToFormValues(formState.schedule) : undefined}
+              isSubmitting={isSubmitting}
+              onSubmit={handleSubmit}
+              onCancel={closeForm}
+              conflictDetails={conflictDetails ?? undefined}
+              conflictMessage={conflictMessage}
+            />
+          </CardContent>
+        </Card>
       ) : null}
     </div>
   );
