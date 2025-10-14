@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation';
 import { getAttendanceSessions } from './data';
 import { ATTENDANCE_STATUSES } from './types';
 import { CreateAttendanceSessionButton } from './CreateAttendanceSessionButton';
+import { PageHeader } from '../../../components/ui/page-header';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   dateStyle: 'full',
@@ -19,64 +22,61 @@ export default async function AttendanceIndexPage() {
   }
 
   return (
-    <div className="min-h-screen bg-emerald-950 text-emerald-50">
-      <div className="mx-auto max-w-6xl px-6 py-12 space-y-8">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-emerald-300/80">Attendance</p>
-            <h1 className="text-2xl font-semibold text-white lg:text-3xl">
-              Daily attendance sessions
-            </h1>
-            <p className="text-sm text-emerald-100/70">
-              Review recent classroom check-ins, monitor attendance status, and drill into individual
-              sessions for more detail.
+    <div className="space-y-6">
+      <PageHeader
+        title="Daily Attendance Sessions"
+        description="Review recent classroom check-ins, monitor attendance status, and drill into individual sessions for more detail."
+        action={<CreateAttendanceSessionButton />}
+      />
+
+      {sessions.length === 0 ? (
+        <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+          <CardContent className="p-10 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              No attendance sessions have been recorded yet. Once teachers submit their first
+              check-ins the sessions will appear here automatically.
             </p>
-          </div>
-          <CreateAttendanceSessionButton />
-        </header>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {sessions.map((session) => {
+            const sessionDate = dateFormatter.format(new Date(session.date));
+            const statusCounts = ATTENDANCE_STATUSES.map((status) => ({
+              status,
+              count: session.statusCounts?.[status] ?? 0,
+            })).filter((item) => item.count > 0);
 
-        {sessions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-emerald-500/40 bg-emerald-900/50 p-10 text-center text-sm text-emerald-100/70">
-            No attendance sessions have been recorded yet. Once teachers submit their first
-            check-ins the sessions will appear here automatically.
-          </div>
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {sessions.map((session) => {
-              const sessionDate = dateFormatter.format(new Date(session.date));
-              const statusCounts = ATTENDANCE_STATUSES.map((status) => ({
-                status,
-                count: session.statusCounts?.[status] ?? 0,
-              })).filter((item) => item.count > 0);
-
-              return (
-                <li
-                  key={session.id}
-                  className="flex h-full flex-col rounded-2xl border border-emerald-500/40 bg-emerald-900/60 p-6 shadow-inner shadow-emerald-500/10"
-                >
+            return (
+              <Card
+                key={session.id}
+                className="flex h-full flex-col border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 transition-all duration-300 hover:shadow-xl"
+              >
+                <CardContent className="flex h-full flex-col p-6">
                   <div className="space-y-2">
-                    <p className="text-xs uppercase tracking-wide text-emerald-200/80">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
                       {session.branch.name}
                     </p>
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {session.classSchedule?.title ?? 'Unscheduled session'}
                     </h2>
-                    <p className="text-sm text-emerald-100/70">{sessionDate}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{sessionDate}</p>
                   </div>
 
                   {statusCounts.length > 0 ? (
-                    <div className="mt-4 flex flex-wrap gap-2 text-xs text-emerald-100/80">
+                    <div className="mt-4 flex flex-wrap gap-2">
                       {statusCounts.map((status) => (
-                        <span
+                        <Badge
                           key={`${session.id}-${status.status}`}
-                          className="rounded-full bg-emerald-500/20 px-3 py-1 font-medium text-emerald-200"
+                          variant="secondary"
+                          className="text-xs"
                         >
                           {status.status.toLowerCase()} · {status.count}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-4 text-xs text-emerald-100/60">
+                    <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
                       No records submitted yet. Encourage the assigned teacher to complete the
                       register.
                     </p>
@@ -85,22 +85,22 @@ export default async function AttendanceIndexPage() {
                   <div className="mt-6 flex-1" />
 
                   <div className="mt-6 flex items-center justify-between">
-                    <span className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-200">
+                    <Badge variant="outline" className="text-xs">
                       {session.status.toLowerCase()}
-                    </span>
+                    </Badge>
                     <Link
                       href={`/app/attendance/${session.id}`}
-                      className="text-xs font-medium text-emerald-200 underline underline-offset-4"
+                      className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
                     >
-                      View session
+                      View session →
                     </Link>
                   </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
