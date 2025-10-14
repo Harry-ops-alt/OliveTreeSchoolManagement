@@ -10,72 +10,80 @@
 
 @layer base {
   :root {
-    /* ===== LIGHT MODE - Modern & Minimal ===== */
+    /* ===== LIGHT MODE - Analytics Hub Style ===== */
     
-    /* Backgrounds - Clean & Bright */
-    --background: 0 0% 100%;              /* Pure white */
-    --surface: 210 20% 98%;               /* Soft grey-blue */
+    /* Backgrounds - Bright & Clean */
+    --background: 220 14% 98%;            /* #F9FAFB - Soft grey-blue */
+    --surface: 0 0% 100%;                 /* Pure white */
     --card: 0 0% 100%;                    /* White cards */
-    --card-foreground: 215 25% 15%;       /* Deep charcoal */
+    --card-foreground: 222 47% 11%;       /* #1C1C28 - Deep slate */
     
     /* Popovers & Dropdowns */
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 222 47% 11%;
     
     /* Text Hierarchy */
-    --foreground: 215 25% 15%;            /* Deep charcoal - primary text */
-    --foreground-muted: 215 15% 45%;      /* Muted grey - secondary text */
-    --foreground-subtle: 215 10% 65%;     /* Subtle grey - tertiary text */
+    --foreground: 222 47% 11%;            /* #1C1C28 - Deep slate */
+    --foreground-muted: 240 5% 42%;       /* #6E6B7B - Muted grey */
+    --foreground-subtle: 240 5% 65%;      /* Light grey */
     
-    /* Primary - Soft Sage/Emerald */
-    --primary: 158 40% 48%;               /* Muted emerald */
-    --primary-foreground: 0 0% 100%;      /* White text on primary */
-    --primary-hover: 158 45% 42%;         /* Deeper on hover */
-    --primary-subtle: 158 35% 95%;        /* Very light tint */
+    /* Primary - Lavender (Analytics Hub Purple) */
+    --primary: 250 67% 67%;               /* #7367F0 - Vibrant lavender */
+    --primary-foreground: 0 0% 100%;      /* White text */
+    --primary-hover: 250 67% 60%;         /* Deeper lavender */
+    --primary-subtle: 250 67% 97%;        /* Very light lavender */
     
-    /* Secondary - Warm Beige */
-    --secondary: 35 25% 92%;              /* Soft beige */
-    --secondary-foreground: 35 15% 35%;   /* Dark beige text */
+    /* Secondary - Teal Accent */
+    --secondary: 186 100% 47%;            /* #00CFE8 - Bright teal */
+    --secondary-foreground: 0 0% 100%;
     
     /* Muted - Neutral surfaces */
-    --muted: 215 15% 95%;                 /* Light grey */
-    --muted-foreground: 215 15% 45%;      /* Muted text */
+    --muted: 220 14% 96%;                 /* #F4F5F7 - Light grey */
+    --muted-foreground: 240 5% 42%;       /* #6E6B7B - Muted text */
     
     /* Accent - Highlights */
-    --accent: 158 40% 48%;                /* Same as primary */
+    --accent: 250 67% 67%;                /* Same as primary */
     --accent-foreground: 0 0% 100%;
     
-    /* Semantic Colors */
-    --success: 142 50% 50%;               /* Soft green */
+    /* Semantic Colors - Analytics Hub Palette */
+    --success: 145 63% 49%;               /* #28C76F - Vibrant green */
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 60%;                /* Warm amber */
-    --warning-foreground: 38 15% 20%;
-    --error: 0 65% 55%;                   /* Soft red */
+    --success-subtle: 145 63% 97%;        /* Light green bg */
+    
+    --warning: 28 100% 63%;               /* #FF9F43 - Warm orange */
+    --warning-foreground: 0 0% 100%;
+    --warning-subtle: 28 100% 97%;        /* Light orange bg */
+    
+    --error: 356 75% 60%;                 /* #EA5455 - Soft red */
     --error-foreground: 0 0% 100%;
-    --info: 210 80% 55%;                  /* Soft blue */
+    --error-subtle: 356 75% 97%;          /* Light red bg */
+    
+    --info: 199 89% 48%;                  /* #00A8CC - Info blue */
     --info-foreground: 0 0% 100%;
+    --info-subtle: 199 89% 97%;           /* Light blue bg */
     
     /* Destructive (alias for error) */
-    --destructive: 0 65% 55%;
+    --destructive: 356 75% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* Borders & Dividers */
-    --border: 215 15% 88%;                /* Light grey border */
-    --border-subtle: 215 10% 93%;         /* Very light border */
-    --input: 215 15% 95%;                 /* Input background */
-    --ring: 158 40% 48%;                  /* Focus ring (primary) */
+    --border: 220 13% 91%;                /* rgba(0,0,0,0.06) equivalent */
+    --border-subtle: 220 13% 95%;         /* Very subtle */
+    --input: 0 0% 100%;                   /* White input bg */
+    --ring: 250 67% 67%;                  /* Focus ring (primary) */
     
-    /* Charts - Harmonious palette */
-    --chart-1: 158 40% 48%;               /* Primary emerald */
-    --chart-2: 210 80% 55%;               /* Blue */
-    --chart-3: 142 50% 50%;               /* Green */
-    --chart-4: 38 92% 60%;                /* Amber */
-    --chart-5: 0 65% 55%;                 /* Red */
+    /* Charts - Analytics Hub Palette */
+    --chart-1: 250 67% 67%;               /* Lavender */
+    --chart-2: 186 100% 47%;              /* Teal */
+    --chart-3: 145 63% 49%;               /* Green */
+    --chart-4: 28 100% 63%;               /* Orange */
+    --chart-5: 356 75% 60%;               /* Red */
+    --chart-6: 199 89% 48%;               /* Blue */
     
-    /* Border Radius */
-    --radius: 0.75rem;                    /* 12px - default */
-    --radius-sm: 0.5rem;                  /* 8px - small */
-    --radius-lg: 1rem;                    /* 16px - large */
+    /* Border Radius - Analytics Hub Style */
+    --radius: 1rem;                       /* 16px - default (cards) */
+    --radius-sm: 0.5rem;                  /* 8px - small (buttons) */
+    --radius-lg: 1.25rem;                 /* 20px - large (modals) */
   }
   
   /* ===== DARK MODE - Premium & Sophisticated ===== */

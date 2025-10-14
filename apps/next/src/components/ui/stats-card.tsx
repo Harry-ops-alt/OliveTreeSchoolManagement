@@ -1,4 +1,4 @@
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Skeleton } from './skeleton';
 
@@ -12,23 +12,16 @@ interface StatsCardProps {
     isPositive: boolean;
   };
   loading?: boolean;
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'error';
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info';
 }
-
-const variantStyles = {
-  default: 'border-l-4 border-l-muted-foreground/20',
-  primary: 'border-l-4 border-l-primary',
-  success: 'border-l-4 border-l-chart-3',
-  warning: 'border-l-4 border-l-chart-4',
-  error: 'border-l-4 border-l-destructive',
-};
 
 const iconVariantStyles = {
   default: 'bg-muted text-muted-foreground',
   primary: 'bg-primary/10 text-primary',
-  success: 'bg-chart-3/10 text-chart-3',
-  warning: 'bg-chart-4/10 text-chart-4',
-  error: 'bg-destructive/10 text-destructive',
+  success: 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]',
+  warning: 'bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]',
+  error: 'bg-[hsl(var(--error))]/10 text-[hsl(var(--error))]',
+  info: 'bg-[hsl(var(--info))]/10 text-[hsl(var(--info))]',
 };
 
 export function StatsCard({
@@ -41,33 +34,38 @@ export function StatsCard({
   variant = 'default',
 }: StatsCardProps) {
   return (
-    <Card className={`${variantStyles[variant]} bg-card transition-all hover:shadow-md`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <Card className="bg-card shadow-sm transition-all hover:shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {title}
         </CardTitle>
         {Icon && (
-          <div className={`rounded-lg p-2 ${iconVariantStyles[variant]}`}>
-            <Icon className="h-4 w-4" />
+          <div className={`rounded-xl p-2.5 ${iconVariantStyles[variant]}`}>
+            <Icon className="h-5 w-5" />
           </div>
         )}
       </CardHeader>
-      <CardContent className="space-y-1">
+      <CardContent className="space-y-2">
         {loading ? (
-          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-9 w-28" />
         ) : (
-          <div className="text-2xl font-bold text-foreground">{value}</div>
+          <div className="text-3xl font-semibold text-foreground">{value}</div>
         )}
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
-        {trend && (
-          <div className="flex items-center gap-1 text-xs">
-            <span className={trend.isPositive ? 'text-chart-3' : 'text-destructive'}>
-              {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
+        {trend && !loading && (
+          <div className="flex items-center gap-1.5">
+            {trend.isPositive ? (
+              <TrendingUp className="h-3.5 w-3.5 text-[hsl(var(--success))]" />
+            ) : (
+              <TrendingDown className="h-3.5 w-3.5 text-[hsl(var(--error))]" />
+            )}
+            <span className={`text-xs font-medium ${trend.isPositive ? 'text-[hsl(var(--success))]' : 'text-[hsl(var(--error))]'}`}>
+              {trend.isPositive ? '+' : ''}{trend.value}%
             </span>
-            <span className="text-muted-foreground">from last period</span>
+            <span className="text-xs text-muted-foreground">vs last period</span>
           </div>
+        )}
+        {description && !trend && (
+          <p className="text-xs text-muted-foreground">{description}</p>
         )}
       </CardContent>
     </Card>

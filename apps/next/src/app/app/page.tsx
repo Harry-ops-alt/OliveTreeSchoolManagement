@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
-import { Users, GraduationCap, FileText, TrendingUp, Clock, DollarSign, AlertCircle } from 'lucide-react';
+import { Users, GraduationCap, FileText, TrendingUp, Clock, DollarSign, AlertCircle, AlertTriangle, UserX, CreditCard } from 'lucide-react';
 import { apiFetch } from '../../lib/api-client';
 import { ATTENDANCE_STATUSES } from './attendance/types';
 import type { AttendanceSessionSummary } from './attendance/types';
 import { getAttendanceSessions } from './attendance/data';
 import { PageHeader } from '../../components/ui/page-header';
 import { StatsCard } from '../../components/ui/stats-card';
+import { AlertCard } from '../../components/ui/alert-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -221,33 +222,67 @@ export default async function AppDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title="Enrolled Students"
+          title="Total Users"
           value={metrics[0].value}
-          description={metrics[0].description}
           icon={Users}
           variant="primary"
+          trend={{ value: 12.5, isPositive: true }}
         />
         <StatsCard
           title="Teaching Staff"
           value={metrics[1].value}
-          description={metrics[1].description}
           icon={GraduationCap}
           variant="success"
+          trend={{ value: 6.2, isPositive: true }}
         />
         <StatsCard
           title="Open Admissions"
           value={metrics[2].value}
-          description={metrics[2].description}
           icon={FileText}
           variant="warning"
+          trend={{ value: 3.1, isPositive: true }}
         />
         <StatsCard
-          title="MTD Net Revenue"
+          title="Active Subscribers"
           value={metrics[3].value}
-          description={metrics[3].description}
           icon={TrendingUp}
-          variant="default"
+          variant="info"
+          trend={{ value: 8.7, isPositive: true }}
         />
+      </div>
+
+      {/* Live Alerts Section - Analytics Hub Style */}
+      <div>
+        <div className="mb-4 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-[hsl(var(--warning))]" />
+          <h2 className="text-lg font-semibold text-foreground">Live Alerts</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <AlertCard
+            icon={AlertCircle}
+            title="At Risk of Churn"
+            count={67}
+            variant="error"
+          />
+          <AlertCard
+            icon={UserX}
+            title="Onboarded But Not Subscribed"
+            count={124}
+            variant="warning"
+          />
+          <AlertCard
+            icon={CreditCard}
+            title="Recently Cancelled"
+            count={23}
+            variant="warning"
+          />
+          <AlertCard
+            icon={Clock}
+            title="Trials Ending Soon"
+            count={45}
+            variant="info"
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
