@@ -156,12 +156,12 @@ export default function InvoicesPage() {
 
   const getStatusBadge = (status: InvoiceStatus) => {
     const variants: Record<InvoiceStatus, { variant: any; label: string; className?: string }> = {
-      DRAFT: { variant: 'secondary', label: 'Draft' },
-      ISSUED: { variant: 'default', label: 'Issued', className: 'bg-blue-500 hover:bg-blue-600' },
-      PAID: { variant: 'default', label: 'Paid', className: 'bg-green-500 hover:bg-green-600' },
-      PARTIALLY_PAID: { variant: 'default', label: 'Partial', className: 'bg-yellow-500 hover:bg-yellow-600' },
-      OVERDUE: { variant: 'destructive', label: 'Overdue' },
-      CANCELLED: { variant: 'secondary', label: 'Cancelled' },
+      DRAFT: { variant: 'secondary', label: 'Draft', className: 'text-xs' },
+      ISSUED: { variant: 'default', label: 'Issued', className: 'bg-primary text-xs hover:bg-primary/90' },
+      PAID: { variant: 'default', label: 'Paid', className: 'bg-chart-3 text-xs hover:bg-chart-3/90' },
+      PARTIALLY_PAID: { variant: 'default', label: 'Partial', className: 'bg-chart-4 text-xs hover:bg-chart-4/90' },
+      OVERDUE: { variant: 'destructive', label: 'Overdue', className: 'text-xs' },
+      CANCELLED: { variant: 'secondary', label: 'Cancelled', className: 'text-xs' },
     };
     const { variant, label, className } = variants[status];
     return <Badge variant={variant} className={className}>{label}</Badge>;
@@ -176,92 +176,100 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight">Invoices & Payments</h1>
-          <p className="text-lg text-muted-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Invoices & Payments</h1>
+          <p className="text-sm text-muted-foreground">
             Track invoices, record payments, and monitor outstanding balances
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500 transition-all hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="border-l-4 border-l-primary bg-card transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Invoices
             </CardTitle>
-            <FileText className="h-5 w-5 text-blue-500" />
+            <div className="rounded-full bg-primary/10 p-2">
+              <FileText className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-3xl font-bold">{stats.total}</div>
+              <div className="text-2xl font-bold text-foreground">{stats.total}</div>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               All time
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500 transition-all hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Card className="border-l-4 border-l-chart-3 bg-card transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Paid Invoices
             </CardTitle>
-            <CheckCircle className="h-5 w-5 text-green-500" />
+            <div className="rounded-full bg-chart-3/10 p-2">
+              <CheckCircle className="h-4 w-4 text-chart-3" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-3xl font-bold text-green-600">{stats.paid}</div>
+              <div className="text-2xl font-bold text-chart-3">{stats.paid}</div>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Fully settled
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-red-500 transition-all hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Card className="border-l-4 border-l-destructive bg-card transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Overdue
             </CardTitle>
-            <AlertCircle className="h-5 w-5 text-red-500" />
+            <div className="rounded-full bg-destructive/10 p-2">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-3xl font-bold text-red-600">{stats.overdue}</div>
+              <div className="text-2xl font-bold text-destructive">{stats.overdue}</div>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Requires attention
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500 transition-all hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Card className="border-l-4 border-l-chart-4 bg-card transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Outstanding
             </CardTitle>
-            <DollarSign className="h-5 w-5 text-purple-500" />
+            <div className="rounded-full bg-chart-4/10 p-2">
+              <DollarSign className="h-4 w-4 text-chart-4" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">
+              <div className="text-2xl font-bold text-foreground">
                 {formatCurrency(stats.totalAmount - stats.paidAmount)}
               </div>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Pending collection
             </p>
           </CardContent>
@@ -269,23 +277,23 @@ export default function InvoicesPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
+      <Card className="bg-card">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by invoice number or student name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11"
+                className="h-10 border-border bg-background pl-9 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
               />
             </div>
             <Select
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value as InvoiceStatus | 'ALL')}
             >
-              <SelectTrigger className="w-[180px] h-11">
+              <SelectTrigger className="h-10 w-[160px] border-border bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -301,78 +309,86 @@ export default function InvoicesPage() {
       </Card>
 
       {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Invoices</CardTitle>
-          <CardDescription>
-            {filteredInvoices.length} {filteredInvoices.length === 1 ? 'invoice' : 'invoices'} found
-          </CardDescription>
+      <Card className="bg-card">
+        <CardHeader className="border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-semibold text-foreground">All Invoices</CardTitle>
+              <CardDescription className="mt-1 text-sm text-muted-foreground">
+                {filteredInvoices.length} {filteredInvoices.length === 1 ? 'invoice' : 'invoices'} found
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
+        <CardContent className="p-0">
+          <div className="overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Invoice #</TableHead>
-                  <TableHead className="font-semibold">Student</TableHead>
-                  <TableHead className="font-semibold">Issue Date</TableHead>
-                  <TableHead className="font-semibold">Due Date</TableHead>
-                  <TableHead className="font-semibold">Amount</TableHead>
-                  <TableHead className="font-semibold">Paid</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
+                <TableRow className="border-b border-border bg-muted/30 hover:bg-muted/30">
+                  <TableHead className="h-12 px-6 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Invoice #</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Student</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Issue Date</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Due Date</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amount</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Paid</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
+                  <TableHead className="h-12 px-6 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-5 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-10 ml-auto" /></TableCell>
+                    <TableRow key={i} className="border-b border-border">
+                      <TableCell className="px-6 py-4"><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-5 w-16" /></TableCell>
+                      <TableCell className="px-6 py-4"><Skeleton className="ml-auto h-8 w-10" /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredInvoices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-32 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <FileText className="h-12 w-12 text-muted-foreground/50" />
-                        <p className="text-lg font-medium">No invoices found</p>
-                        <p className="text-sm text-muted-foreground">
-                          {searchQuery ? 'Try adjusting your search or filters' : 'Invoices will appear here once generated'}
-                        </p>
+                    <TableCell colSpan={8} className="h-40 text-center">
+                      <div className="flex flex-col items-center justify-center gap-3 py-8">
+                        <div className="rounded-full bg-muted/50 p-3">
+                          <FileText className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">No invoices found</p>
+                          <p className="text-xs text-muted-foreground">
+                            {searchQuery ? 'Try adjusting your search or filters' : 'Invoices will appear here once generated'}
+                          </p>
+                        </div>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredInvoices.map((invoice) => (
-                    <TableRow key={invoice.id} className="group hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-bold text-base">{invoice.invoiceNumber}</TableCell>
-                      <TableCell>
-                        <div className="font-semibold">
+                    <TableRow key={invoice.id} className="group border-b border-border transition-colors hover:bg-muted/30">
+                      <TableCell className="px-6 py-4 font-semibold text-sm text-foreground">{invoice.invoiceNumber}</TableCell>
+                      <TableCell className="px-4 py-4">
+                        <div className="font-semibold text-sm text-foreground">
                           {invoice.student?.user.firstName} {invoice.student?.user.lastName}
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{formatDate(invoice.issueDate)}</TableCell>
-                      <TableCell className="text-muted-foreground">{formatDate(invoice.dueDate)}</TableCell>
-                      <TableCell className="font-bold text-base">{formatCurrency(invoice.amount)}</TableCell>
-                      <TableCell className="font-semibold text-green-600">{formatCurrency(invoice.paidAmount)}</TableCell>
-                      <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <TableCell className="px-4 py-4 text-sm text-muted-foreground">{formatDate(invoice.issueDate)}</TableCell>
+                      <TableCell className="px-4 py-4 text-sm text-muted-foreground">{formatDate(invoice.dueDate)}</TableCell>
+                      <TableCell className="px-4 py-4 font-semibold text-sm text-foreground">{formatCurrency(invoice.amount)}</TableCell>
+                      <TableCell className="px-4 py-4 font-semibold text-sm text-chart-3">{formatCurrency(invoice.paidAmount)}</TableCell>
+                      <TableCell className="px-4 py-4">{getStatusBadge(invoice.status)}</TableCell>
+                      <TableCell className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                           {invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => openPaymentDialog(invoice)}
-                              className="hover:bg-green-50 hover:text-green-600"
+                              className="h-8 w-8 p-0 hover:bg-chart-3/10 hover:text-chart-3"
                             >
-                              <CreditCard className="h-4 w-4" />
+                              <CreditCard className="h-3.5 w-3.5" />
                             </Button>
                           )}
                         </div>

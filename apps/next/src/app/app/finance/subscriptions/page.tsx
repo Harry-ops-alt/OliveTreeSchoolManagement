@@ -97,71 +97,77 @@ export default function SubscriptionsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight">Subscriptions</h1>
-          <p className="text-lg text-muted-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Subscriptions</h1>
+          <p className="text-sm text-muted-foreground">
             Monitor and manage student fee subscriptions in real-time
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-l-4 border-l-blue-500 transition-all hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="border-l-4 border-l-primary bg-card transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Subscriptions
             </CardTitle>
-            <Users className="h-5 w-5 text-blue-500" />
+            <div className="rounded-full bg-primary/10 p-2">
+              <Users className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-3xl font-bold">{stats.total}</div>
+              <div className="text-2xl font-bold text-foreground">{stats.total}</div>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               All active and inactive
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500 transition-all hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Card className="border-l-4 border-l-chart-3 bg-card transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Active Students
             </CardTitle>
-            <UserCheck className="h-5 w-5 text-green-500" />
+            <div className="rounded-full bg-chart-3/10 p-2">
+              <UserCheck className="h-4 w-4 text-chart-3" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-3xl font-bold text-green-600">{stats.active}</div>
+              <div className="text-2xl font-bold text-chart-3">{stats.active}</div>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Currently enrolled
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500 transition-all hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <Card className="border-l-4 border-l-chart-4 bg-card transition-all hover:shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Monthly Revenue
             </CardTitle>
-            <TrendingUp className="h-5 w-5 text-purple-500" />
+            <div className="rounded-full bg-chart-4/10 p-2">
+              <TrendingUp className="h-4 w-4 text-chart-4" />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-3xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+              <div className="text-2xl font-bold text-foreground">{formatCurrency(stats.totalRevenue)}</div>
             )}
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Recurring income
             </p>
           </CardContent>
@@ -169,23 +175,23 @@ export default function SubscriptionsPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
+      <Card className="bg-card">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by student name or fee structure..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11"
+                className="h-10 border-border bg-background pl-9 text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
               />
             </div>
             <Select
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value as SubscriptionStatus | 'ALL')}
             >
-              <SelectTrigger className="w-[180px] h-11">
+              <SelectTrigger className="h-10 w-[160px] border-border bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -201,80 +207,88 @@ export default function SubscriptionsPage() {
       </Card>
 
       {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Subscriptions</CardTitle>
-          <CardDescription>
-            {filteredSubscriptions.length} {filteredSubscriptions.length === 1 ? 'subscription' : 'subscriptions'} found
-          </CardDescription>
+      <Card className="bg-card">
+        <CardHeader className="border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-semibold text-foreground">All Subscriptions</CardTitle>
+              <CardDescription className="mt-1 text-sm text-muted-foreground">
+                {filteredSubscriptions.length} {filteredSubscriptions.length === 1 ? 'subscription' : 'subscriptions'} found
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
+        <CardContent className="p-0">
+          <div className="overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Student</TableHead>
-                  <TableHead className="font-semibold">Fee Structure</TableHead>
-                  <TableHead className="font-semibold">Amount</TableHead>
-                  <TableHead className="font-semibold">Billing Cycle</TableHead>
-                  <TableHead className="font-semibold">Start Date</TableHead>
-                  <TableHead className="font-semibold">Next Billing</TableHead>
-                  <TableHead className="font-semibold">Discount</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
+                <TableRow className="border-b border-border bg-muted/30 hover:bg-muted/30">
+                  <TableHead className="h-12 px-6 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Student</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fee Structure</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amount</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Billing Cycle</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Start Date</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next Billing</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Discount</TableHead>
+                  <TableHead className="h-12 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                    <TableRow key={i} className="border-b border-border">
+                      <TableCell className="px-6 py-4"><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="px-4 py-4"><Skeleton className="h-5 w-16" /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredSubscriptions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-32 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Users className="h-12 w-12 text-muted-foreground/50" />
-                        <p className="text-lg font-medium">No subscriptions found</p>
-                        <p className="text-sm text-muted-foreground">
-                          {searchQuery ? 'Try adjusting your search or filters' : 'Subscriptions will appear here once students enroll'}
-                        </p>
+                    <TableCell colSpan={8} className="h-40 text-center">
+                      <div className="flex flex-col items-center justify-center gap-3 py-8">
+                        <div className="rounded-full bg-muted/50 p-3">
+                          <Users className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">No subscriptions found</p>
+                          <p className="text-xs text-muted-foreground">
+                            {searchQuery ? 'Try adjusting your search or filters' : 'Subscriptions will appear here once students enroll'}
+                          </p>
+                        </div>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredSubscriptions.map((subscription) => (
-                    <TableRow key={subscription.id} className="group hover:bg-muted/50 transition-colors">
-                      <TableCell>
+                    <TableRow key={subscription.id} className="group border-b border-border transition-colors hover:bg-muted/30">
+                      <TableCell className="px-6 py-4">
                         <div>
-                          <div className="font-semibold text-base">
+                          <div className="font-semibold text-sm text-foreground">
                             {subscription.student?.user.firstName} {subscription.student?.user.lastName}
                           </div>
-                          <div className="text-sm text-muted-foreground mt-0.5">
+                          <div className="mt-0.5 text-xs text-muted-foreground">
                             {subscription.student?.studentNumber}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{subscription.feeStructure?.name}</TableCell>
-                      <TableCell className="font-bold text-base">
+                      <TableCell className="px-4 py-4 text-sm text-muted-foreground">{subscription.feeStructure?.name}</TableCell>
+                      <TableCell className="px-4 py-4 font-semibold text-sm text-foreground">
                         {formatCurrency(subscription.amount)}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-medium capitalize">
+                      <TableCell className="px-4 py-4">
+                        <Badge variant="secondary" className="bg-secondary/50 font-medium text-xs capitalize">
                           {subscription.billingCycle.toLowerCase()}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{formatDate(subscription.startDate)}</TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="px-4 py-4 text-sm text-muted-foreground">{formatDate(subscription.startDate)}</TableCell>
+                      <TableCell className="px-4 py-4 text-sm text-muted-foreground">
                         {subscription.nextBillingDate ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             <Calendar className="h-3 w-3" />
                             {formatDate(subscription.nextBillingDate)}
                           </div>
@@ -282,23 +296,23 @@ export default function SubscriptionsPage() {
                           '-'
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-4 py-4">
                         {subscription.discountAmount > 0 ? (
                           <div className="text-sm">
-                            <div className="font-bold text-green-600">
+                            <div className="font-semibold text-chart-3">
                               -{formatCurrency(subscription.discountAmount)}
                             </div>
                             {subscription.discountReason && (
-                              <div className="text-xs text-muted-foreground mt-0.5">
+                              <div className="mt-0.5 text-xs text-muted-foreground">
                                 {subscription.discountReason}
                               </div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">-</span>
+                          <span className="text-sm text-muted-foreground">-</span>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(subscription.status)}</TableCell>
+                      <TableCell className="px-4 py-4">{getStatusBadge(subscription.status)}</TableCell>
                     </TableRow>
                   ))
                 )}
