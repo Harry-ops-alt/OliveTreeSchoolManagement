@@ -6,46 +6,84 @@
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Gradient Utilities - Linear + Framer Style */
+  .gradient-olive {
+    background: linear-gradient(120deg, hsl(var(--secondary)) 0%, hsl(135 23% 90%) 100%);
+  }
+  
+  .gradient-olive-subtle {
+    background: linear-gradient(135deg, hsl(var(--primary-subtle)) 0%, hsl(var(--accent)) 100%);
+  }
+  
+  .gradient-border {
+    position: relative;
+  }
+  
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(120deg, hsl(var(--secondary)) 0%, hsl(135 23% 90%) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  
+  /* Shadow Utilities - Stripe Style */
+  .shadow-soft {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .shadow-medium {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  }
+  
+  .shadow-elevated {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  }
 }
 
 @layer base {
   :root {
-    /* ===== LIGHT MODE - Analytics Hub Style ===== */
+    /* ===== LIGHT MODE - Linear + Stripe + Framer Aesthetic ===== */
     
-    /* Backgrounds - Bright & Clean */
-    --background: 220 14% 98%;            /* #F9FAFB - Soft grey-blue */
-    --surface: 0 0% 100%;                 /* Pure white */
+    /* Backgrounds - Soft Neutrals */
+    --background: 210 17% 98%;            /* #F9FAFC - Soft neutral base */
+    --surface: 0 0% 100%;                 /* #FFFFFF - Pure white */
     --card: 0 0% 100%;                    /* White cards */
-    --card-foreground: 222 47% 11%;       /* #1C1C28 - Deep slate */
+    --card-foreground: 220 26% 9%;        /* #111827 - Deep charcoal */
     
     /* Popovers & Dropdowns */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 26% 9%;
     
     /* Text Hierarchy */
-    --foreground: 222 47% 11%;            /* #1C1C28 - Deep slate */
-    --foreground-muted: 240 5% 42%;       /* #6E6B7B - Muted grey */
-    --foreground-subtle: 240 5% 65%;      /* Light grey */
+    --foreground: 220 26% 9%;             /* #111827 - Primary text */
+    --foreground-muted: 220 9% 46%;       /* #6B7280 - Secondary text */
+    --foreground-subtle: 220 9% 65%;      /* Light grey text */
     
-    /* Primary - Lavender (Analytics Hub Purple) */
-    --primary: 250 67% 67%;               /* #7367F0 - Vibrant lavender */
+    /* Primary - Muted Olive (Brand Identity) */
+    --primary: 142 21% 38%;               /* #4B7354 - Muted olive */
     --primary-foreground: 0 0% 100%;      /* White text */
-    --primary-hover: 250 67% 60%;         /* Deeper lavender */
-    --primary-subtle: 250 67% 97%;        /* Very light lavender */
+    --primary-hover: 142 21% 32%;         /* Deeper olive */
+    --primary-subtle: 142 21% 96%;        /* Very light olive */
     
-    /* Secondary - Teal Accent */
-    --secondary: 186 100% 47%;            /* #00CFE8 - Bright teal */
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - Sage Accent */
+    --secondary: 135 23% 70%;             /* #A2C3A4 - Sage */
+    --secondary-foreground: 142 21% 20%;  /* Dark olive text */
     
     /* Muted - Neutral surfaces */
-    --muted: 220 14% 96%;                 /* #F4F5F7 - Light grey */
-    --muted-foreground: 240 5% 42%;       /* #6E6B7B - Muted text */
+    --muted: 220 13% 91%;                 /* #E5E7EB - Light neutral */
+    --muted-foreground: 220 9% 46%;       /* #6B7280 - Muted text */
     
-    /* Accent - Highlights */
-    --accent: 250 67% 67%;                /* Same as primary */
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Sand Highlight */
+    --accent: 42 48% 91%;                 /* #F3E8D2 - Sand */
+    --accent-foreground: 220 26% 9%;
     
-    /* Semantic Colors - Analytics Hub Palette */
+    /* Semantic Colors - Refined Palette */
     --success: 145 63% 49%;               /* #28C76F - Vibrant green */
     --success-foreground: 0 0% 100%;
     --success-subtle: 145 63% 97%;        /* Light green bg */
@@ -66,24 +104,25 @@
     --destructive: 356 75% 60%;
     --destructive-foreground: 0 0% 100%;
     
-    /* Borders & Dividers */
-    --border: 220 13% 91%;                /* rgba(0,0,0,0.06) equivalent */
+    /* Borders & Dividers - Subtle */
+    --border: 220 13% 91%;                /* #E5E7EB - Light neutral */
     --border-subtle: 220 13% 95%;         /* Very subtle */
     --input: 0 0% 100%;                   /* White input bg */
-    --ring: 250 67% 67%;                  /* Focus ring (primary) */
+    --ring: 142 21% 38%;                  /* Focus ring (olive) */
     
-    /* Charts - Analytics Hub Palette */
-    --chart-1: 250 67% 67%;               /* Lavender */
-    --chart-2: 186 100% 47%;              /* Teal */
+    /* Charts - Harmonious Olive Palette */
+    --chart-1: 142 21% 38%;               /* Muted olive */
+    --chart-2: 135 23% 70%;               /* Sage */
     --chart-3: 145 63% 49%;               /* Green */
     --chart-4: 28 100% 63%;               /* Orange */
     --chart-5: 356 75% 60%;               /* Red */
     --chart-6: 199 89% 48%;               /* Blue */
     
-    /* Border Radius - Analytics Hub Style */
-    --radius: 1rem;                       /* 16px - default (cards) */
+    /* Border Radius - Linear Style */
+    --radius: 0.75rem;                    /* 12px - default (cards) */
     --radius-sm: 0.5rem;                  /* 8px - small (buttons) */
-    --radius-lg: 1.25rem;                 /* 20px - large (modals) */
+    --radius-lg: 1rem;                    /* 16px - large (modals) */
+    --radius-xl: 1.25rem;                 /* 20px - extra large */
   }
   
   /* ===== DARK MODE - Premium & Sophisticated ===== */
@@ -157,9 +196,11 @@
   
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    font-family: 'Satoshi', 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   /* Typography improvements */
