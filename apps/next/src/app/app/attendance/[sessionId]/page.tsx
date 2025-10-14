@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getAttendanceSession } from '../data';
 import { AttendanceSessionForm } from './AttendanceSessionForm';
+import { PageHeader } from '../../../../components/ui/page-header';
+import { Card, CardContent } from '../../../../components/ui/card';
+import { Badge } from '../../../../components/ui/badge';
+import { Button } from '../../../../components/ui/button';
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
   dateStyle: 'full',
@@ -33,73 +37,67 @@ export default async function AttendanceSessionPage({
     : 'Not yet finalised';
 
   return (
-    <div className="min-h-screen bg-emerald-950 text-emerald-50">
-      <div className="mx-auto max-w-5xl px-6 py-12 space-y-8">
-        <Link
-          href="/app/attendance"
-          className="inline-flex items-center gap-1 text-sm font-medium text-emerald-200 underline underline-offset-4"
-        >
-          ← Back to attendance overview
-        </Link>
+    <div className="space-y-6">
+      <Link
+        href="/app/attendance"
+        className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+      >
+        ← Back to attendance overview
+      </Link>
 
-        <header className="space-y-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-emerald-300/80">Attendance session</p>
-              <h1 className="text-3xl font-semibold text-white">
-                {session.classScheduleTitle ?? 'Ad-hoc register'}
-              </h1>
-              <p className="mt-2 text-sm text-emerald-100/70">
-                {session.branchName} · {dateTimeFormatter.format(new Date(session.date))}
-              </p>
-            </div>
-            <span className="self-start rounded-full bg-emerald-500/20 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">
-              {session.status.toLowerCase()}
-            </span>
-          </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <PageHeader
+          title={session.classScheduleTitle ?? 'Ad-hoc register'}
+          description={`${session.branchName} · ${dateTimeFormatter.format(new Date(session.date))}`}
+        />
+        <Badge variant="outline" className="self-start">
+          {session.status.toLowerCase()}
+        </Badge>
+      </div>
 
-          {session.notes ? (
-            <p className="rounded-2xl border border-emerald-500/30 bg-emerald-900/70 p-4 text-sm text-emerald-100/80">
-              {session.notes}
-            </p>
-          ) : null}
+      {session.notes ? (
+        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+          <CardContent className="p-4">
+            <p className="text-sm text-gray-900 dark:text-white">{session.notes}</p>
+          </CardContent>
+        </Card>
+      ) : null}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <dl className="rounded-2xl border border-emerald-500/30 bg-emerald-900/70 p-4 text-sm text-emerald-100/80">
-              <dt className="text-xs uppercase tracking-wide text-emerald-300/80">Submitted at</dt>
-              <dd className="mt-1 text-emerald-50">{submittedLabel}</dd>
-            </dl>
-            <dl className="rounded-2xl border border-emerald-500/30 bg-emerald-900/70 p-4 text-sm text-emerald-100/80">
-              <dt className="text-xs uppercase tracking-wide text-emerald-300/80">Finalised at</dt>
-              <dd className="mt-1 text-emerald-50">{finalisedLabel}</dd>
-            </dl>
-          </div>
-        </header>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+          <CardContent className="p-6">
+            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Submitted at</dt>
+            <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{submittedLabel}</dd>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+          <CardContent className="p-6">
+            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Finalised at</dt>
+            <dd className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{finalisedLabel}</dd>
+          </CardContent>
+        </Card>
+      </div>
 
-        <form
-          action={async () => {
-            'use server';
-            await handleRefresh(session.id);
-          }}
-        >
-          <button
-            type="submit"
-            className="rounded-full border border-emerald-500/40 px-4 py-2 text-xs font-medium text-emerald-200 transition hover:border-emerald-300 hover:text-emerald-100"
-          >
-            Refresh session data
-          </button>
-        </form>
+      <form
+        action={async () => {
+          'use server';
+          await handleRefresh(session.id);
+        }}
+      >
+        <Button type="submit" variant="outline">
+          Refresh session data
+        </Button>
+      </form>
 
-        <section className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold text-white">Student attendance</h2>
-            <p className="text-sm text-emerald-100/70">
-              Review and update learner statuses, add notes, and finalise the register when ready.
-            </p>
-          </div>
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Student attendance</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Review and update learner statuses, add notes, and finalise the register when ready.
+          </p>
+        </div>
 
-          <AttendanceSessionForm session={session} />
-        </section>
+        <AttendanceSessionForm session={session} />
       </div>
     </div>
   );
