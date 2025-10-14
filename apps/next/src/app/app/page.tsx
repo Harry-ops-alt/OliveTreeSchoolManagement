@@ -1,9 +1,15 @@
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
+import { Users, GraduationCap, FileText, TrendingUp, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import { apiFetch } from '../../lib/api-client';
 import { ATTENDANCE_STATUSES } from './attendance/types';
 import type { AttendanceSessionSummary } from './attendance/types';
 import { getAttendanceSessions } from './attendance/data';
+import { PageHeader } from '../../components/ui/page-header';
+import { StatsCard } from '../../components/ui/stats-card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 
 type DashboardSummary = {
   students: number;
@@ -184,162 +190,179 @@ export default async function AppDashboard() {
   const financeBadge = financeItems.length > 0 ? 'Updated' : 'Live soon';
 
   return (
-    <div className="min-h-screen bg-emerald-950 text-emerald-50">
-      <div className="mx-auto max-w-6xl px-6 py-12 space-y-10">
-        <header className="space-y-4">
-          <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-wide text-emerald-300/80">Dashboard</p>
-              <h1 className="text-3xl font-semibold lg:text-4xl">Welcome to Olive Tree Dashboard</h1>
-              <p className="mt-2 max-w-3xl text-sm text-emerald-100/80">
-                Monitor admissions, enrolment, finance, and daily operations in one place. The
-                data below reflects the latest information from the Olive Tree API.
-              </p>
+    <div className="space-y-6">
+      <PageHeader
+        title="Dashboard"
+        description="Monitor admissions, enrollment, finance, and daily operations in one place."
+      />
+
+      {dataLoadFailed ? (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  We had trouble loading the latest metrics
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Showing the most recent cached values where available.
+                </p>
+                <form action={handleRefresh} className="mt-4">
+                  <Button type="submit" variant="outline" size="sm">
+                    Try again
+                  </Button>
+                </form>
+              </div>
             </div>
-          </div>
-        </header>
+          </CardContent>
+        </Card>
+      ) : null}
 
-        {dataLoadFailed ? (
-          <form action={handleRefresh} className="rounded-2xl border border-emerald-500/40 bg-emerald-900/70 p-5 text-sm text-emerald-100/80">
-            <p>
-              We had trouble loading the latest metrics. Showing the most recent cached values where
-              available.
-            </p>
-            <button
-              type="submit"
-              className="mt-4 rounded-full border border-emerald-500/60 px-4 py-2 text-xs font-medium text-emerald-200 transition hover:border-emerald-300 hover:text-emerald-100"
-            >
-              Try again
-            </button>
-          </form>
-        ) : null}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatsCard
+          title="Enrolled Students"
+          value={metrics[0].value}
+          description={metrics[0].description}
+          icon={Users}
+          variant="primary"
+        />
+        <StatsCard
+          title="Teaching Staff"
+          value={metrics[1].value}
+          description={metrics[1].description}
+          icon={GraduationCap}
+          variant="success"
+        />
+        <StatsCard
+          title="Open Admissions"
+          value={metrics[2].value}
+          description={metrics[2].description}
+          icon={FileText}
+          variant="warning"
+        />
+        <StatsCard
+          title="MTD Net Revenue"
+          value={metrics[3].value}
+          description={metrics[3].description}
+          icon={TrendingUp}
+          variant="default"
+        />
+      </div>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {metrics.map((metric) => (
-            <div
-              key={metric.title}
-              className="rounded-2xl border border-emerald-500/40 bg-emerald-900/70 p-5 shadow-inner shadow-emerald-500/10"
-            >
-              <p className="text-sm text-emerald-200/80">{metric.title}</p>
-              <p
-                className="mt-4 text-3xl font-semibold text-white"
-                data-testid={metricTestIds[metric.title] ?? undefined}
-              >
-                {metric.value}
-              </p>
-              <p className="mt-3 text-xs text-emerald-100/70">{metric.description}</p>
-            </div>
-          ))}
-        </section>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <section className="rounded-2xl border border-emerald-500/40 bg-emerald-900/60 p-6 shadow-inner shadow-emerald-500/10">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-medium text-white">Recent admissions</h2>
-                <p className="text-sm text-emerald-100/70">Latest applications across branches.</p>
+                <CardTitle>Recent Admissions</CardTitle>
+                <CardDescription>Latest applications across branches</CardDescription>
               </div>
-              <span className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs text-emerald-200/80">
-                {admissionsBadge}
-              </span>
+              <Badge variant="secondary">{admissionsBadge}</Badge>
             </div>
-
+          </CardHeader>
+          <CardContent>
             {admissionsItems.length === 0 ? (
-              <p className="mt-8 rounded-lg border border-dashed border-emerald-500/40 bg-emerald-950/40 p-6 text-sm text-emerald-100/60">
-                Admission updates will appear here as soon as applicants start flowing through the
-                system.
-              </p>
+              <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Admission updates will appear here as soon as applicants start flowing through the system.
+                </p>
+              </div>
             ) : (
-              <ul className="mt-6 space-y-4" data-testid="admissions-list">
+              <ul className="space-y-3" data-testid="admissions-list">
                 {admissionsItems.map((admission) => (
                   <li
                     key={admission.id}
-                    className="rounded-xl border border-emerald-500/40 bg-emerald-950/40 p-4"
+                    className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50"
                     data-testid="admissions-item"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium text-white">{admission.studentName}</p>
-                        <p className="text-xs text-emerald-100/70">{admission.branchName}</p>
+                        <p className="font-medium text-foreground">{admission.studentName}</p>
+                        <p className="text-xs text-muted-foreground">{admission.branchName}</p>
                       </div>
-                      <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-200">
-                        {admission.statusLabel}
-                      </span>
+                      <Badge variant="secondary">{admission.statusLabel}</Badge>
                     </div>
-                    <p className="mt-3 text-xs uppercase tracking-wide text-emerald-100/60">
+                    <p className="mt-2 text-xs text-muted-foreground">
                       Applied {admission.appliedDisplay}
                     </p>
                   </li>
                 ))}
               </ul>
             )}
-          </section>
+          </CardContent>
+        </Card>
 
-          <section className="rounded-2xl border border-emerald-500/40 bg-emerald-900/60 p-6 shadow-inner shadow-emerald-500/10">
+        <Card>
+          <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-medium text-white">Finance snapshot</h2>
-                <p className="text-sm text-emerald-100/70">Track payments, invoices, and expenses.</p>
+                <CardTitle>Finance Snapshot</CardTitle>
+                <CardDescription>Track payments, invoices, and expenses</CardDescription>
               </div>
-              <span className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs text-emerald-200/80">
-                {financeBadge}
-              </span>
+              <Badge variant="secondary">{financeBadge}</Badge>
             </div>
-
+          </CardHeader>
+          <CardContent>
             {financeItems.length === 0 ? (
-              <p className="mt-8 rounded-lg border border-dashed border-emerald-500/40 bg-emerald-950/40 p-6 text-sm text-emerald-100/60">
-                Finance activity from the past week will display here once payments or expenses are
-                recorded.
-              </p>
+              <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Finance activity from the past week will display here once payments or expenses are recorded.
+                </p>
+              </div>
             ) : (
-              <ul className="mt-6 space-y-4" data-testid="finance-list">
+              <ul className="space-y-3" data-testid="finance-list">
                 {financeItems.map((transaction) => (
                   <li
                     key={transaction.id}
-                    className="rounded-xl border border-emerald-500/40 bg-emerald-950/40 p-4"
+                    className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50"
                     data-testid="finance-item"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium text-white">{transaction.typeLabel}</p>
-                        <p className="text-xs text-emerald-100/70">{transaction.branchName}</p>
+                        <p className="font-medium text-foreground">{transaction.typeLabel}</p>
+                        <p className="text-xs text-muted-foreground">{transaction.branchName}</p>
                       </div>
-                      <p className="text-sm font-semibold text-emerald-200">
+                      <p className="text-sm font-semibold text-primary">
                         {transaction.amountDisplay}
                       </p>
                     </div>
-                    <p className="mt-3 text-xs uppercase tracking-wide text-emerald-100/60">
+                    <p className="mt-2 text-xs text-muted-foreground">
                       Logged {transaction.occurredDisplay}
                     </p>
                   </li>
                 ))}
               </ul>
             )}
-          </section>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <section className="rounded-2xl border border-emerald-500/40 bg-emerald-900/50 p-6 shadow-inner shadow-emerald-500/10">
+      <Card>
+        <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-medium text-white">Attendance overview</h2>
-              <p className="text-sm text-emerald-100/70">
-                Track recent sessions, status counts, and follow-up actions.
-              </p>
+              <CardTitle>Attendance Overview</CardTitle>
+              <CardDescription>
+                Track recent sessions, status counts, and follow-up actions
+              </CardDescription>
             </div>
-            <Link
-              href="/app/attendance"
-              className="text-xs font-medium text-emerald-200 underline underline-offset-4"
-            >
-              View all
+            <Link href="/app/attendance">
+              <Button variant="ghost" size="sm">
+                View all
+              </Button>
             </Link>
           </div>
-
+        </CardHeader>
+        <CardContent>
           {attendanceSessions.length === 0 ? (
-            <p className="mt-8 rounded-lg border border-dashed border-emerald-500/40 bg-emerald-950/40 p-6 text-sm text-emerald-100/60">
-              Attendance sessions will appear here once teachers begin recording daily check-ins.
-            </p>
+            <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Attendance sessions will appear here once teachers begin recording daily check-ins.
+              </p>
+            </div>
           ) : (
-            <ul className="mt-6 space-y-4" data-testid="attendance-list">
+            <ul className="space-y-3" data-testid="attendance-list">
               {attendanceSessions.slice(0, 3).map((session) => {
                 const sessionDate = dateFormatter.format(new Date(session.date));
                 const statusCounts = ATTENDANCE_STATUSES.map((status) => ({
@@ -350,41 +373,40 @@ export default async function AppDashboard() {
                 return (
                   <li
                     key={session.id}
-                    className="rounded-xl border border-emerald-500/40 bg-emerald-950/40 p-4"
+                    className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50"
                     data-testid="attendance-item"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm uppercase tracking-wide text-emerald-200/80">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           {session.branch.name}
                         </p>
-                        <h3 className="text-lg font-semibold text-white">
+                        <h3 className="text-base font-semibold text-foreground">
                           {session.classSchedule?.title ?? 'Unscheduled session'}
                         </h3>
-                        <p className="text-xs text-emerald-100/70">{sessionDate}</p>
+                        <p className="text-xs text-muted-foreground">{sessionDate}</p>
                       </div>
-                      <Link
-                        href={`/app/attendance/${session.id}`}
-                        className="rounded-full border border-emerald-500/40 px-3 py-1 text-xs font-medium text-emerald-200 transition hover:border-emerald-300 hover:text-emerald-100"
-                      >
-                        View details
+                      <Link href={`/app/attendance/${session.id}`}>
+                        <Button variant="outline" size="sm">
+                          View details
+                        </Button>
                       </Link>
                     </div>
 
                     {statusCounts.length > 0 ? (
-                      <div className="mt-4 flex flex-wrap gap-2 text-xs text-emerald-100/80">
+                      <div className="mt-3 flex flex-wrap gap-2">
                         {statusCounts.map((status) => (
-                          <span
+                          <Badge
                             key={`${session.id}-${status.status}`}
-                            className="rounded-full bg-emerald-500/20 px-3 py-1 font-medium text-emerald-200"
+                            variant="secondary"
                             data-testid={`attendance-status-${status.status.toLowerCase()}`}
                           >
                             {status.status.toLowerCase()} · {status.count}
-                          </span>
+                          </Badge>
                         ))}
                       </div>
                     ) : (
-                      <p className="mt-4 text-xs text-emerald-100/60">
+                      <p className="mt-3 text-xs text-muted-foreground">
                         No attendance records yet. Encourage staff to complete check-in.
                       </p>
                     )}
@@ -393,15 +415,18 @@ export default async function AppDashboard() {
               })}
             </ul>
           )}
-        </section>
+        </CardContent>
+      </Card>
 
-        <section className="rounded-2xl border border-emerald-500/40 bg-emerald-900/50 p-6 shadow-inner shadow-emerald-500/10">
-          <h2 className="text-lg font-medium text-white">Quick actions</h2>
-          <p className="mt-2 text-sm text-emerald-100/70">
-            Get a head start on the most common workflows. These links will point to the relevant
-            modules once they are ready.
-          </p>
-          <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>
+            Get a head start on the most common workflows
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {[
               { label: 'Create student profile', href: '#' },
               { label: 'Review admissions queue', href: '#' },
@@ -413,14 +438,14 @@ export default async function AppDashboard() {
               <Link
                 key={action.label}
                 href={action.href}
-                className="rounded-xl border border-emerald-500/30 bg-emerald-950/60 px-4 py-3 text-left text-sm text-emerald-100/80 transition hover:border-emerald-400 hover:text-white"
+                className="flex items-center justify-center rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:text-primary"
               >
                 {action.label}
               </Link>
             ))}
           </div>
-        </section>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

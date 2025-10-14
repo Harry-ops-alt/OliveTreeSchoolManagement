@@ -8,92 +8,180 @@
   }
 }
 
-
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 158 64% 52%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 158 64% 52%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 158 64% 52%;
-    --chart-1: 158 64% 52%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.75rem;
-  }
-  
-  /* Dark Green Theme - WCAG AA Compliant */
-  .dark {
-    /* Backgrounds - Refined dark green palette */
-    --background: 158 45% 8%;        /* Deep emerald base */
-    --foreground: 158 15% 95%;       /* Light emerald text - WCAG AAA */
+    /* ===== LIGHT MODE - Modern & Minimal ===== */
     
-    /* Cards - Elevated surfaces */
-    --card: 158 40% 11%;             /* Slightly lighter than background */
-    --card-foreground: 158 15% 95%;  /* High contrast text */
+    /* Backgrounds - Clean & Bright */
+    --background: 0 0% 100%;              /* Pure white */
+    --surface: 210 20% 98%;               /* Soft grey-blue */
+    --card: 0 0% 100%;                    /* White cards */
+    --card-foreground: 215 25% 15%;       /* Deep charcoal */
     
     /* Popovers & Dropdowns */
-    --popover: 158 42% 12%;
-    --popover-foreground: 158 15% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
     
-    /* Primary - Emerald accent */
-    --primary: 158 64% 52%;          /* Vibrant emerald */
-    --primary-foreground: 158 45% 8%; /* Dark text on bright */
+    /* Text Hierarchy */
+    --foreground: 215 25% 15%;            /* Deep charcoal - primary text */
+    --foreground-muted: 215 15% 45%;      /* Muted grey - secondary text */
+    --foreground-subtle: 215 10% 65%;     /* Subtle grey - tertiary text */
     
-    /* Secondary - Muted surfaces */
-    --secondary: 158 35% 15%;        /* Darker emerald */
-    --secondary-foreground: 158 15% 90%;
+    /* Primary - Soft Sage/Emerald */
+    --primary: 158 40% 48%;               /* Muted emerald */
+    --primary-foreground: 0 0% 100%;      /* White text on primary */
+    --primary-hover: 158 45% 42%;         /* Deeper on hover */
+    --primary-subtle: 158 35% 95%;        /* Very light tint */
     
-    /* Muted - Subtle elements */
-    --muted: 158 30% 18%;            /* Muted emerald surface */
-    --muted-foreground: 158 10% 70%; /* WCAG AA compliant muted text */
+    /* Secondary - Warm Beige */
+    --secondary: 35 25% 92%;              /* Soft beige */
+    --secondary-foreground: 35 15% 35%;   /* Dark beige text */
+    
+    /* Muted - Neutral surfaces */
+    --muted: 215 15% 95%;                 /* Light grey */
+    --muted-foreground: 215 15% 45%;      /* Muted text */
     
     /* Accent - Highlights */
-    --accent: 158 50% 45%;           /* Medium emerald */
+    --accent: 158 40% 48%;                /* Same as primary */
     --accent-foreground: 0 0% 100%;
     
-    /* Destructive - Errors */
-    --destructive: 0 72% 51%;        /* Bright red for errors */
+    /* Semantic Colors */
+    --success: 142 50% 50%;               /* Soft green */
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 60%;                /* Warm amber */
+    --warning-foreground: 38 15% 20%;
+    --error: 0 65% 55%;                   /* Soft red */
+    --error-foreground: 0 0% 100%;
+    --info: 210 80% 55%;                  /* Soft blue */
+    --info-foreground: 0 0% 100%;
+    
+    /* Destructive (alias for error) */
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Borders & Dividers */
+    --border: 215 15% 88%;                /* Light grey border */
+    --border-subtle: 215 10% 93%;         /* Very light border */
+    --input: 215 15% 95%;                 /* Input background */
+    --ring: 158 40% 48%;                  /* Focus ring (primary) */
+    
+    /* Charts - Harmonious palette */
+    --chart-1: 158 40% 48%;               /* Primary emerald */
+    --chart-2: 210 80% 55%;               /* Blue */
+    --chart-3: 142 50% 50%;               /* Green */
+    --chart-4: 38 92% 60%;                /* Amber */
+    --chart-5: 0 65% 55%;                 /* Red */
+    
+    /* Border Radius */
+    --radius: 0.75rem;                    /* 12px - default */
+    --radius-sm: 0.5rem;                  /* 8px - small */
+    --radius-lg: 1rem;                    /* 16px - large */
+  }
+  
+  /* ===== DARK MODE - Premium & Sophisticated ===== */
+  .dark {
+    /* Backgrounds - Deep Navy/Charcoal */
+    --background: 222 25% 10%;            /* Deep navy-charcoal */
+    --surface: 222 20% 13%;               /* Slightly lighter */
+    --card: 222 18% 16%;                  /* Elevated cards */
+    --card-foreground: 210 20% 98%;       /* Almost white */
+    
+    /* Popovers & Dropdowns */
+    --popover: 222 20% 13%;
+    --popover-foreground: 210 20% 98%;
+    
+    /* Text Hierarchy */
+    --foreground: 210 20% 98%;            /* Almost white - primary */
+    --foreground-muted: 210 15% 70%;      /* Muted light - secondary */
+    --foreground-subtle: 210 10% 50%;     /* Subtle light - tertiary */
+    
+    /* Primary - Brighter Emerald in dark */
+    --primary: 158 50% 55%;               /* Brighter emerald */
+    --primary-foreground: 222 25% 10%;    /* Dark text on bright */
+    --primary-hover: 158 55% 60%;         /* Even brighter */
+    --primary-subtle: 158 40% 20%;        /* Dark tint */
+    
+    /* Secondary - Darker beige */
+    --secondary: 35 15% 20%;              /* Dark beige */
+    --secondary-foreground: 35 20% 85%;   /* Light beige text */
+    
+    /* Muted - Dark surfaces */
+    --muted: 222 15% 20%;                 /* Dark grey */
+    --muted-foreground: 210 15% 70%;      /* Muted light text */
+    
+    /* Accent */
+    --accent: 158 50% 55%;
+    --accent-foreground: 222 25% 10%;
+    
+    /* Semantic Colors - Adjusted for dark */
+    --success: 142 55% 55%;
+    --success-foreground: 222 25% 10%;
+    --warning: 38 95% 65%;
+    --warning-foreground: 38 20% 15%;
+    --error: 0 70% 60%;
+    --error-foreground: 0 0% 100%;
+    --info: 210 85% 60%;
+    --info-foreground: 222 25% 10%;
+    
+    /* Destructive */
+    --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* Borders & Inputs */
-    --border: 158 25% 22%;           /* Subtle emerald borders */
-    --input: 158 30% 18%;            /* Input backgrounds */
-    --ring: 158 64% 52%;             /* Focus rings */
+    --border: 222 15% 22%;                /* Subtle borders */
+    --border-subtle: 222 10% 18%;         /* Very subtle */
+    --input: 222 15% 20%;                 /* Input background */
+    --ring: 158 50% 55%;                  /* Focus ring */
     
-    /* Charts - Emerald palette */
-    --chart-1: 158 64% 52%;          /* Primary emerald */
-    --chart-2: 173 58% 45%;          /* Teal */
-    --chart-3: 142 71% 45%;          /* Green */
-    --chart-4: 45 93% 58%;           /* Gold */
-    --chart-5: 0 72% 51%;            /* Red */
+    /* Charts - Vibrant in dark */
+    --chart-1: 158 50% 55%;
+    --chart-2: 210 85% 60%;
+    --chart-3: 142 55% 55%;
+    --chart-4: 38 95% 65%;
+    --chart-5: 0 70% 60%;
   }
 }
-
-
 
 @layer base {
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Typography improvements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  /* Smooth transitions */
+  * {
+    @apply transition-colors duration-200;
+  }
+  
+  /* Focus visible styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+  
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/30;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-lg;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
   }
 }

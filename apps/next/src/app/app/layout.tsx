@@ -32,7 +32,7 @@ export default async function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <ToastProvider>
-      <div className="dark min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="flex min-h-screen">
           <SidebarNav
             role={role}
@@ -41,28 +41,30 @@ export default async function AppLayout({ children }: AppLayoutProps) {
             email={session.email}
           />
           <div className="flex flex-1 flex-col">
-            <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card/95 px-8 py-4 backdrop-blur-sm">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-primary">Olive Tree</p>
-                <p className="text-sm font-medium text-foreground">School Management Platform</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <ApiHealthIndicator />
-                <div className="hidden text-right md:block">
-                  <p className="text-sm font-semibold text-foreground">{displayName || session.email}</p>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{displayRole}</p>
+            <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur-sm">
+              <div className="flex items-center justify-between px-6 py-4 lg:px-8">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Olive Tree</p>
+                  <p className="text-sm font-medium text-muted-foreground">School Management Platform</p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-sm font-bold uppercase text-primary ring-2 ring-primary/30">
-                  {(displayName || session.email).slice(0, 2)}
+                <div className="flex items-center gap-3">
+                  <ApiHealthIndicator />
+                  <div className="hidden text-right md:block">
+                    <p className="text-sm font-medium text-foreground">{displayName || session.email}</p>
+                    <p className="text-xs text-muted-foreground">{displayRole}</p>
+                  </div>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary ring-2 ring-primary/20">
+                    {(displayName || session.email).slice(0, 2).toUpperCase()}
+                  </div>
+                  <form action={logout}>
+                    <Button type="submit" variant="ghost" className="h-9 font-medium hover:bg-muted">
+                      Log out
+                    </Button>
+                  </form>
                 </div>
-                <form action={logout}>
-                  <Button type="submit" variant="ghost" className="border border-border font-medium hover:bg-muted">
-                    Log out
-                  </Button>
-                </form>
               </div>
             </header>
-            <main className="flex-1 overflow-y-auto bg-background p-8">
+            <main className="flex-1 overflow-y-auto bg-muted/30 p-6 lg:p-8">
               <ComingSoonBoundary>{children}</ComingSoonBoundary>
             </main>
           </div>
