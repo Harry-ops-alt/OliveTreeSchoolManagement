@@ -16,21 +16,12 @@ interface StatsCardProps {
 }
 
 const iconVariantStyles = {
-  default: 'bg-muted text-muted-foreground',
-  primary: 'bg-gradient-to-br from-primary/10 to-primary/5 text-primary',
-  success: 'bg-gradient-to-br from-[hsl(var(--success))]/10 to-[hsl(var(--success))]/5 text-[hsl(var(--success))]',
-  warning: 'bg-gradient-to-br from-[hsl(var(--warning))]/10 to-[hsl(var(--warning))]/5 text-[hsl(var(--warning))]',
-  error: 'bg-gradient-to-br from-[hsl(var(--error))]/10 to-[hsl(var(--error))]/5 text-[hsl(var(--error))]',
-  info: 'bg-gradient-to-br from-[hsl(var(--info))]/10 to-[hsl(var(--info))]/5 text-[hsl(var(--info))]',
-};
-
-const borderVariantStyles = {
-  default: '',
-  primary: 'border-l-2 border-l-primary/20',
-  success: 'border-l-2 border-l-[hsl(var(--success))]/20',
-  warning: 'border-l-2 border-l-[hsl(var(--warning))]/20',
-  error: 'border-l-2 border-l-[hsl(var(--error))]/20',
-  info: 'border-l-2 border-l-[hsl(var(--info))]/20',
+  default: 'bg-gradient-to-br from-gray-500 to-gray-600',
+  primary: 'bg-gradient-to-br from-blue-500 to-blue-600',
+  success: 'bg-gradient-to-br from-green-500 to-green-600',
+  warning: 'bg-gradient-to-br from-orange-500 to-orange-600',
+  error: 'bg-gradient-to-br from-red-500 to-red-600',
+  info: 'bg-gradient-to-br from-purple-500 to-purple-600',
 };
 
 export function StatsCard({
@@ -43,45 +34,41 @@ export function StatsCard({
   variant = 'default',
 }: StatsCardProps) {
   return (
-    <Card className={`group bg-card border-border/50 shadow-soft transition-all duration-300 hover:shadow-medium hover:border-border hover:-translate-y-1 ${borderVariantStyles[variant]}`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {title}
-        </CardTitle>
-        {Icon && (
-          <div className={`rounded-lg p-2.5 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${iconVariantStyles[variant]}`}>
-            <Icon className="h-5 w-5" strokeWidth={2.5} />
-          </div>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {loading ? (
-          <Skeleton className="h-10 w-32" />
-        ) : (
-          <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{value}</div>
-        )}
-        {trend && !loading && (
-          <div className="flex items-center gap-1.5">
-            {trend.isPositive ? (
-              <div className="flex items-center gap-1 rounded-full bg-[hsl(var(--success))]/10 px-2 py-0.5">
-                <TrendingUp className="h-3.5 w-3.5 text-[hsl(var(--success))]" strokeWidth={2.5} />
-                <span className="text-xs font-semibold text-[hsl(var(--success))]">
-                  +{trend.value}%
-                </span>
-              </div>
+    <Card className="group border-none bg-gradient-to-br from-white to-gray-50 shadow-lg transition-all duration-300 hover:shadow-xl dark:from-gray-900 dark:to-gray-800">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">
+              {title}
+            </p>
+            {loading ? (
+              <Skeleton className="h-9 w-24" />
             ) : (
-              <div className="flex items-center gap-1 rounded-full bg-[hsl(var(--error))]/10 px-2 py-0.5">
-                <TrendingDown className="h-3.5 w-3.5 text-[hsl(var(--error))]" strokeWidth={2.5} />
-                <span className="text-xs font-semibold text-[hsl(var(--error))]">
-                  {trend.value}%
+              <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">
+                {value}
+              </p>
+            )}
+            {trend && !loading && (
+              <div className="mt-2 flex items-center gap-1 text-sm font-medium text-green-600">
+                {trend.isPositive ? (
+                  <TrendingUp className="h-4 w-4" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                )}
+                <span className={trend.isPositive ? 'text-green-600' : 'text-red-600'}>
+                  {trend.isPositive ? '+' : ''}{trend.value}%
                 </span>
               </div>
             )}
-            <span className="text-xs text-muted-foreground">vs last period</span>
           </div>
-        )}
+          {Icon && (
+            <div className={`rounded-xl p-3 shadow-lg ${iconVariantStyles[variant]}`}>
+              <Icon className="h-6 w-6 text-white" />
+            </div>
+          )}
+        </div>
         {description && !trend && (
-          <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{description}</p>
         )}
       </CardContent>
     </Card>

@@ -34,9 +34,9 @@ export function SidebarNav({ role, displayName, displayRole, email }: SidebarNav
   const userLabel = displayName || email;
 
   return (
-    <aside className="relative border-r border-border/50 bg-card/50 backdrop-blur-sm">
+    <aside className="relative border-r border-border bg-[hsl(var(--sidebar))]">
       {/* Mobile Header */}
-      <div className="flex items-center justify-between border-b border-border/50 px-6 py-4 md:hidden">
+      <div className="flex items-center justify-between border-b border-border px-6 py-4 md:hidden">
         <div>
           <p className="text-sm font-semibold text-primary">Olive Tree</p>
           <p className="text-xs text-muted-foreground">School Management</p>
@@ -44,7 +44,7 @@ export function SidebarNav({ role, displayName, displayRole, email }: SidebarNav
         <button
           type="button"
           onClick={toggle}
-          className="rounded-lg p-2 text-foreground transition-all hover:bg-muted/50"
+          className="rounded-lg p-2 text-foreground transition-all hover:bg-[hsl(var(--sidebar-hover))]"
           aria-label="Toggle navigation"
         >
           {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -53,18 +53,18 @@ export function SidebarNav({ role, displayName, displayRole, email }: SidebarNav
 
       {/* Sidebar Content */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-border/50 bg-card/95 backdrop-blur-xl shadow-elevated transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-border bg-[hsl(var(--sidebar))] shadow-lg transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } flex flex-col`}
       >
-        {/* Logo - Desktop - Linear Style */}
-        <div className="hidden border-b border-border/50 px-4 py-4 md:block">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-soft">
-              <span className="text-sm font-bold text-primary-foreground">OT</span>
+        {/* Logo - Desktop - Analytics Hub Style */}
+        <div className="hidden border-b border-border px-5 py-5 md:block">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
+              <span className="text-base font-bold text-white">OT</span>
             </div>
             <div>
-              <p className="text-sm font-semibold tracking-tight text-foreground">Olive Tree</p>
+              <p className="text-sm font-bold text-foreground">Olive Tree</p>
               <p className="text-xs text-muted-foreground">School Management</p>
             </div>
           </div>
@@ -130,22 +130,14 @@ function NavLink({ item, pathname, onNavigate }: NavLinkProps) {
     <Link
       href={item.href}
       onClick={onNavigate}
-      className={`group relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-all duration-200 ${
+      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
         isActive
-          ? 'bg-primary/10 text-primary shadow-soft'
-          : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+          ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
+          : 'text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
       }`}
     >
-      {/* Active Indicator - Left Border */}
-      {isActive && (
-        <div className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-primary" />
-      )}
-      
-      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} strokeWidth={2} />
-      <span className="flex-1 tracking-tight">{item.label}</span>
-      
-      {/* Hover Arrow - Subtle */}
-      <ChevronRight className={`h-3.5 w-3.5 opacity-0 transition-all group-hover:opacity-60 group-hover:translate-x-0.5 ${isActive ? 'opacity-0' : ''}`} strokeWidth={2} />
+      <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
+      <span className="flex-1">{item.label}</span>
     </Link>
   );
 }

@@ -1,48 +1,43 @@
 import { LucideIcon } from 'lucide-react';
-import { Card, CardContent } from './card';
+import { Badge } from './badge';
 
 interface AlertCardProps {
   icon: LucideIcon;
   title: string;
   count: number;
   variant?: 'error' | 'warning' | 'info' | 'success';
+  onClick?: () => void;
 }
 
 const variantStyles = {
-  error: 'bg-[hsl(var(--error-subtle))] border-[hsl(var(--error))]/20',
-  warning: 'bg-[hsl(var(--warning-subtle))] border-[hsl(var(--warning))]/20',
-  info: 'bg-[hsl(var(--info-subtle))] border-[hsl(var(--info))]/20',
-  success: 'bg-[hsl(var(--success-subtle))] border-[hsl(var(--success))]/20',
+  error: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
+  warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
+  info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
+  success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
 };
 
 const iconVariantStyles = {
-  error: 'bg-[hsl(var(--error))]/10 text-[hsl(var(--error))]',
-  warning: 'bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]',
-  info: 'bg-[hsl(var(--info))]/10 text-[hsl(var(--info))]',
-  success: 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]',
+  error: 'text-red-600 dark:text-red-400',
+  warning: 'text-yellow-600 dark:text-yellow-400',
+  info: 'text-blue-600 dark:text-blue-400',
+  success: 'text-green-600 dark:text-green-400',
 };
 
-const countVariantStyles = {
-  error: 'text-[hsl(var(--error))]',
-  warning: 'text-[hsl(var(--warning))]',
-  info: 'text-[hsl(var(--info))]',
-  success: 'text-[hsl(var(--success))]',
-};
-
-export function AlertCard({ icon: Icon, title, count, variant = 'info' }: AlertCardProps) {
+export function AlertCard({ icon: Icon, title, count, variant = 'info', onClick }: AlertCardProps) {
   return (
-    <Card className={`group border transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${variantStyles[variant]}`}>
-      <CardContent className="flex items-center justify-between p-5">
-        <div className="flex items-center gap-3">
-          <div className={`rounded-xl p-2.5 transition-transform duration-300 group-hover:scale-110 ${iconVariantStyles[variant]}`}>
-            <Icon className="h-4 w-4" />
-          </div>
-          <span className="text-sm font-medium text-foreground leading-tight">{title}</span>
-        </div>
-        <span className={`text-2xl font-bold tabular-nums ${countVariantStyles[variant]}`}>
+    <button
+      onClick={onClick}
+      className={`rounded-xl border-2 p-4 text-left transition-all duration-300 hover:scale-102 ${variantStyles[variant]}`}
+    >
+      <div className="mb-2 flex items-start justify-between">
+        <Icon className={`h-6 w-6 ${iconVariantStyles[variant]}`} />
+        <Badge variant="secondary" className="text-lg font-bold">
           {count}
-        </span>
-      </CardContent>
-    </Card>
+        </Badge>
+      </div>
+      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+        {title}
+      </p>
+    </button>
   );
 }
